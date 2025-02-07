@@ -18,7 +18,7 @@ class UsersSeeder extends Seeder
             'token' => Str::random(60),
             'token_expiration' => now()->addDays(7),
         ]);
-
+/*
         User::create([
             'name' => 'Jane Smith',
             'email' => 'jane@example.com',
@@ -36,6 +36,6 @@ class UsersSeeder extends Seeder
             'token' => Str::random(60),
             'token_expiration' => now()->addDays(7),
         ]);
-
+*/
     }
 }

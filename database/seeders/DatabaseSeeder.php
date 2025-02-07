@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             PermissionsSeeder::class,
             RoleUserSeeder::class,
             PermissionRoleSeeder::class,
+            /*
             CategoryGroupsSeeder::class,
             CategorySeeder::class,
             AuthorSeeder::class,
@@ -26,6 +27,7 @@ class DatabaseSeeder extends Seeder
             CommentsSeeder::class,
             KeywordsSeeder::class,
             NotificationSeeder::class,
+            */
         ]);
     }
 }
