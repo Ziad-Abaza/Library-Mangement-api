@@ -143,11 +143,11 @@ Route::prefix('users')->group(function () {
 Route::prefix('categories')->group(function () {
     Route::get('/', [CategoryController::class, 'index']);
     Route::get('/{category}', [CategoryController::class, 'show']);
-        Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/', [CategoryController::class, 'store']);
-    Route::put('/{category}', [CategoryController::class, 'update']);
-    Route::delete('/{category}', [CategoryController::class, 'destroy']);
-});
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/', [CategoryController::class, 'store']);
+        Route::put('/{category}', [CategoryController::class, 'update']);
+        Route::delete('/{category}', [CategoryController::class, 'destroy']);
+    });
 });
 
 /*
@@ -158,11 +158,11 @@ Route::prefix('categories')->group(function () {
 Route::prefix('category-groups')->group(function () {
     Route::get('/', [CategoryController::class, 'categoryGroups']);
     Route::get('/{id}', [CategoryController::class, 'showCategoryGroup']);
-        Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/', [CategoryController::class, 'storeCategoryGroup']);
-    Route::put('/{id}', [CategoryController::class, 'updateCategoryGroup']);
-    Route::delete('/{id}', [CategoryController::class, 'destroyCategoryGroup']);
-});
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/', [CategoryController::class, 'storeCategoryGroup']);
+        Route::put('/{id}', [CategoryController::class, 'updateCategoryGroup']);
+        Route::delete('/{id}', [CategoryController::class, 'destroyCategoryGroup']);
+    });
 });
 
 /*
@@ -175,11 +175,11 @@ Route::prefix('notifications')->group(function () {
     Route::get('/user', [NotificationController::class, 'getUserNotifications']);
     Route::get('/user/read', [NotificationController::class, 'getReadNotifications']);
     Route::post('/read/{notificationId}', [NotificationController::class, 'markAsRead']);
-        Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/send/user/{id}', [NotificationController::class, 'sendToSpecificUser']);
-    Route::post('/send/all', [NotificationController::class, 'sendToAllUsers']);
-    Route::delete('/{notificationId}', [NotificationController::class, 'deleteNotification']);
-});
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/send/user/{id}', [NotificationController::class, 'sendToSpecificUser']);
+        Route::post('/send/all', [NotificationController::class, 'sendToAllUsers']);
+        Route::delete('/{notificationId}', [NotificationController::class, 'deleteNotification']);
+    });
 });
 
 /*
