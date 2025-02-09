@@ -15,6 +15,8 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Models\Permission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
+
 
 /*
 |------------------------------------------------------------------
@@ -109,12 +111,14 @@ Route::get('/downloads', [DownloadController::class, 'index']);
 |------------------------------------------------------------------
 */
 Route::prefix('roles')->group(function () {
-    Route::get('/', [RolesController::class, 'index']);
-    Route::post('/', [RolesController::class, 'store']);
-    Route::get('/{role}', [RolesController::class, 'show']);
-    Route::put('/{role}', [RolesController::class, 'update']);
-    Route::delete('/{role}', [RolesController::class, 'destroy']);
-})->middleware('auth:sanctum');
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('/', [RolesController::class, 'index']);
+        Route::post('/', [RolesController::class, 'store']);
+        Route::get('/{role}', [RolesController::class, 'show']);
+        Route::put('/{role}', [RolesController::class, 'update']);
+        Route::delete('/{role}', [RolesController::class, 'destroy']);
+    });
+});
 
 Route::get('/permissions', function () {
     return response()->json(['data' => Permission::all()]);
@@ -126,14 +130,16 @@ Route::get('/permissions', function () {
 |------------------------------------------------------------------
 */
 Route::prefix('users')->group(function () {
-    Route::get('/', [UserController::class, 'index']);
-    Route::post('/', [UserController::class, 'store']);
-    Route::get('/{user}', [UserController::class, 'show']);
-    Route::post('/{user}', [UserController::class, 'update']);
-    Route::delete('/{user}', [UserController::class, 'destroy']);
-    Route::post('/{user}/roles/add', [UserController::class, 'addRole'])->name('users.roles.add');
-    Route::post('/{user}/roles/remove', [UserController::class, 'removeRole'])->name('users.roles.remove');
-})->middleware('auth:sanctum');
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('/', [UserController::class, 'index']);
+        Route::post('/', [UserController::class, 'store']);
+        Route::get('/{user}', [UserController::class, 'show']);
+        Route::post('/{user}', [UserController::class, 'update']);
+        Route::delete('/{user}', [UserController::class, 'destroy']);
+        Route::post('/{user}/roles/add', [UserController::class, 'addRole'])->name('users.roles.add');
+        Route::post('/{user}/roles/remove', [UserController::class, 'removeRole'])->name('users.roles.remove');
+    });
+});
 
 /*
 |------------------------------------------------------------------
@@ -200,9 +206,11 @@ Route::prefix('authors')->group(function () {
 |------------------------------------------------------------------
 */
 Route::prefix('author-requests')->group(function () {
-    Route::get('/', [AuthorController::class, 'listRequests']);
-    Route::post('/create', [AuthorController::class, 'requestAuthor']);
-    Route::post('/{id}/handle', [AuthorController::class, 'handleRequest']);
-    Route::post('/{id}/update', [AuthorController::class, 'updateAuthorRequest']);
-    Route::post('/{id}/handle-update', [AuthorController::class, 'handleUpdateRequest']);
-})->middleware('auth:sanctum');
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('/', [AuthorController::class, 'listRequests']);
+        Route::post('/create', [AuthorController::class, 'requestAuthor']);
+        Route::post('/{id}/handle', [AuthorController::class, 'handleRequest']);
+        Route::post('/{id}/update', [AuthorController::class, 'updateAuthorRequest']);
+        Route::post('/{id}/handle-update', [AuthorController::class, 'handleUpdateRequest']);
+    });
+});

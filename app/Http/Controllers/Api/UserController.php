@@ -17,23 +17,6 @@ use App\Notifications\RoleChangedNotification;
 
 class UserController extends Controller
 {
-
-    /*
-    |------------------------------------------------------
-    | Constructor to handle authorization based on environment
-    |------------------------------------------------------
-    */
-    public function __construct()
-    {
-        $environment = env('DEV_ENVIRONMENT', false);
-        if ($environment) {
-            Auth::loginUsingId(1); // Auto-login for development
-        } else {
-            // Apply resource authorization for production
-            $this->authorizeResource(User::class, 'user');
-        }
-    }
-    
     /*
     |------------------------------------------------------
     | Retrieve and cache a list of users based on search query
@@ -41,6 +24,7 @@ class UserController extends Controller
     */
     public function index(Request $request)
     {
+        $this->authorize('viewAny', User::class);
         try {
             $cacheKey = 'users_' . md5($request->get('search'));
             $users = Cache::remember($cacheKey, 20 * 60, function () use ($request) {
@@ -67,6 +51,7 @@ class UserController extends Controller
     */
     public function show(User $user)
     {
+        $this->authorize('view', $user);
         try {
             return new UserResource($user);
         } catch (ModelNotFoundException $e) {
@@ -83,6 +68,7 @@ class UserController extends Controller
     */
     public function store(Request $request)
     {
+        $this->authorize('create', User::class);
         try {
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
@@ -120,6 +106,7 @@ class UserController extends Controller
     */
     public function update(Request $request, User $user)
     {
+        $this->authorize('update', $user);
         try {
             $validated = $request->validate([
                 'name' => 'sometimes|required|string|max:255',
@@ -160,6 +147,7 @@ class UserController extends Controller
     */
     public function destroy(User $user)
     {
+        $this->authorize('delete', $user);
         try {
             $user->clearMediaCollection('images');
             $user->delete();
@@ -178,6 +166,7 @@ class UserController extends Controller
     */
     public function addRole(Request $request, User $user)
     {
+        $this->authorize('update', $user);
         try {
             $validated = $request->validate([
                 'role_id' => 'required|integer|exists:roles,id',
@@ -202,6 +191,7 @@ class UserController extends Controller
     */
     public function removeRole(Request $request, User $user)
     {
+        $this->authorize('update', $user);
         try {
             $validated = $request->validate([
                 'role_id' => 'required|integer|exists:roles,id',
