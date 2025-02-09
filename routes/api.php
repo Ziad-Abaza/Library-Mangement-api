@@ -40,7 +40,7 @@ Route::middleware('auth:sanctum')->group(function () {
             ],
         ]);
     });
-});
+
 
 /*
 |------------------------------------------------------------------
@@ -170,4 +170,5 @@ Route::prefix('author-requests')->group(function () {
     Route::post('/{id}/handle', [AuthorController::class, 'handleRequest']);
     Route::post('/{id}/update', [AuthorController::class, 'updateAuthorRequest']);
     Route::post('/{id}/handle-update', [AuthorController::class, 'handleUpdateRequest']);
+});
 });
