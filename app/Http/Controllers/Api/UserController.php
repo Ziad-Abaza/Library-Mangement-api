@@ -19,7 +19,7 @@ class UserController extends Controller
 {
     /*
     |------------------------------------------------------
-    | Constructor to handle authorization based on environment
+    | Constructor to handle development auto-login
     |------------------------------------------------------
     */
     public function __construct()
@@ -27,19 +27,23 @@ class UserController extends Controller
         $environment = env('DEV_ENVIRONMENT', false);
         if ($environment) {
             Auth::loginUsingId(1); // Auto-login for development
-        } else {
-            // Apply resource authorization for production
-            $this->authorizeResource(User::class, 'user');
         }
+        // Removed the policy-based authorization to allow inline checks.
     }
 
     /*
     |------------------------------------------------------
-    | Retrieve and cache a list of users based on search query
+    | Retrieve and cache a list of users based on a search query
     |------------------------------------------------------
     */
     public function index(Request $request)
     {
+        // Authorization check (equivalent to UserPolicy::viewAny):
+        // The current user must have the 'view-users' permission.
+        if (!auth()->user()->hasPermission('view-users')) {
+            return response()->json(['error' => 'Unauthorized'], Response::HTTP_FORBIDDEN);
+        }
+
         try {
             $cacheKey = 'users_' . md5($request->get('search'));
             $users = Cache::remember($cacheKey, 20 * 60, function () use ($request) {
@@ -61,11 +65,25 @@ class UserController extends Controller
 
     /*
     |------------------------------------------------------
-    | Show details of a specific user
+    | Show details of a specific user with inline authorization
     |------------------------------------------------------
     */
     public function show(User $user)
     {
+        $currentUser = auth()->user();
+
+        // Authorization logic (equivalent to UserPolicy::view):
+        // Allow if the current user is the same as the target user,
+        // OR if the current user has a higher role level,
+        // OR if the current user has the 'view-users' permission.
+        if (!(
+            $currentUser->id === $user->id ||
+            $currentUser->getRoleLevel() > $user->getRoleLevel() ||
+            $currentUser->hasPermission('view-users')
+        )) {
+            return response()->json(['error' => 'Unauthorized'], Response::HTTP_FORBIDDEN);
+        }
+
         try {
             return new UserResource($user);
         } catch (ModelNotFoundException $e) {
@@ -77,24 +95,30 @@ class UserController extends Controller
 
     /*
     |------------------------------------------------------
-    | Create a new user with optional roles and image
+    | Create a new user with inline authorization
     |------------------------------------------------------
     */
     public function store(Request $request)
     {
+        // Authorization check (equivalent to UserPolicy::create):
+        // The current user must have the 'create-user' permission.
+        if (!auth()->user()->hasPermission('create-user')) {
+            return response()->json(['error' => 'Unauthorized'], Response::HTTP_FORBIDDEN);
+        }
+
         try {
             $validated = $request->validate([
-                'name' => 'required|string|max:255',
-                'email' => 'required|email|max:255|unique:users,email',
-                'password' => 'required|string|min:8',
-                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg',
-                'role_ids' => 'nullable|array',
+                'name'      => 'required|string|max:255',
+                'email'     => 'required|email|max:255|unique:users,email',
+                'password'  => 'required|string|min:8',
+                'image'     => 'nullable|image|mimes:jpeg,png,jpg,gif,svg',
+                'role_ids'  => 'nullable|array',
                 'role_ids.*' => 'integer|exists:roles,id',
             ]);
 
             $user = User::create([
-                'name' => $validated['name'],
-                'email' => $validated['email'],
+                'name'     => $validated['name'],
+                'email'    => $validated['email'],
                 'password' => Hash::make($validated['password']),
             ]);
 
@@ -112,29 +136,45 @@ class UserController extends Controller
             return response()->json(['message' => 'User created successfully']);
         } catch (\Throwable $e) {
             return response()->json([
-                'error' => 'Failed to create user.',
+                'error'   => 'Failed to create user.',
                 'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine()
+                'file'    => $e->getFile(),
+                'line'    => $e->getLine()
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 
-
     /*
     |------------------------------------------------------
-    | Update user details, including roles and image
+    | Update user details with inline authorization
     |------------------------------------------------------
     */
     public function update(Request $request, User $user)
     {
+        $currentUser = auth()->user();
+
+        // Authorization logic (equivalent to UserPolicy::update):
+        // Deny update if:
+        //   - The target user has the 'superAdmin' role,
+        //   - OR the current user is trying to update their own profile,
+        //   - OR the current user's role level is lower or equal to the target user's role level,
+        //   - OR the current user does not have the 'edit-user' permission.
+        if (
+            $user->hasRole('superAdmin') ||
+            $currentUser->id === $user->id ||
+            $currentUser->getRoleLevel() <= $user->getRoleLevel() ||
+            !$currentUser->hasPermission('edit-user')
+        ) {
+            return response()->json(['error' => 'Unauthorized'], Response::HTTP_FORBIDDEN);
+        }
+
         try {
             $validated = $request->validate([
-                'name' => 'sometimes|required|string|max:255',
-                'email' => 'sometimes|required|email|max:255|unique:users,email,' . $user->id,
-                'password' => 'sometimes|required|string|min:8',
-                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg',
-                'role_ids' => 'nullable|array',
+                'name'      => 'sometimes|required|string|max:255',
+                'email'     => 'sometimes|required|email|max:255|unique:users,email,' . $user->id,
+                'password'  => 'sometimes|required|string|min:8',
+                'image'     => 'nullable|image|mimes:jpeg,png,jpg,gif,svg',
+                'role_ids'  => 'nullable|array',
                 'role_ids.*' => 'integer|exists:roles,id',
             ]);
 
@@ -164,11 +204,28 @@ class UserController extends Controller
 
     /*
     |------------------------------------------------------
-    | Delete a user along with their associated data
+    | Delete a user with inline authorization
     |------------------------------------------------------
     */
     public function destroy(User $user)
     {
+        $currentUser = auth()->user();
+
+        // Authorization logic (equivalent to UserPolicy::delete):
+        // Deny deletion if:
+        //   - The target user has the 'superAdmin' role,
+        //   - OR the current user is trying to delete their own account,
+        //   - OR the current user's role level is lower or equal to the target user's role level,
+        //   - OR the current user does not have the 'delete-user' permission.
+        if (
+            $user->hasRole('superAdmin') ||
+            $currentUser->id === $user->id ||
+            $currentUser->getRoleLevel() <= $user->getRoleLevel() ||
+            !$currentUser->hasPermission('delete-user')
+        ) {
+            return response()->json(['error' => 'Unauthorized'], Response::HTTP_FORBIDDEN);
+        }
+
         try {
             $user->clearMediaCollection('images');
             $user->delete();
@@ -182,11 +239,23 @@ class UserController extends Controller
 
     /*
     |------------------------------------------------------
-    | Add a role to a user and notify them of the change
+    | Add a role to a user with inline authorization
     |------------------------------------------------------
     */
     public function addRole(Request $request, User $user)
     {
+        $currentUser = auth()->user();
+
+        // Use similar authorization as in the update action:
+        if (
+            $user->hasRole('superAdmin') ||
+            $currentUser->id === $user->id ||
+            $currentUser->getRoleLevel() <= $user->getRoleLevel() ||
+            !$currentUser->hasPermission('edit-user')
+        ) {
+            return response()->json(['error' => 'Unauthorized'], Response::HTTP_FORBIDDEN);
+        }
+
         try {
             $validated = $request->validate([
                 'role_id' => 'required|integer|exists:roles,id',
@@ -206,11 +275,23 @@ class UserController extends Controller
 
     /*
     |------------------------------------------------------
-    | Remove a role from a user and notify them of the change
+    | Remove a role from a user with inline authorization
     |------------------------------------------------------
     */
     public function removeRole(Request $request, User $user)
     {
+        $currentUser = auth()->user();
+
+        // Use similar authorization as in the update action:
+        if (
+            $user->hasRole('superAdmin') ||
+            $currentUser->id === $user->id ||
+            $currentUser->getRoleLevel() <= $user->getRoleLevel() ||
+            !$currentUser->hasPermission('edit-user')
+        ) {
+            return response()->json(['error' => 'Unauthorized'], Response::HTTP_FORBIDDEN);
+        }
+
         try {
             $validated = $request->validate([
                 'role_id' => 'required|integer|exists:roles,id',
