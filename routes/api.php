@@ -36,11 +36,11 @@ Route::middleware('auth:sanctum')->group(function () {
                 'email' => $user->email,
                 'created_at' => $user->created_at,
                 'is_active' => $user->is_active,
-                'role' => $user->roles->select( 'id', 'name', 'role_level')->first(),
+                'role' => $user->roles->select('id', 'name', 'role_level')->first(),
             ],
         ]);
     });
-
+});
 
 /*
 |------------------------------------------------------------------
@@ -54,27 +54,47 @@ Route::get('/', HomePageController::class);
 | Book Routes
 |------------------------------------------------------------------
 */
-Route::apiResource('/books', BookController::class);
-Route::get('/books/{book}/download', [BookController::class, 'download'])->name('api.books.download');
-Route::get('/books/pending/approval', [BookController::class, 'pendingApproval']);
-Route::post('/books/{book}/approve', [BookController::class, 'approve']);
+Route::prefix('books')->group(function () {
+    Route::get('/', [BookController::class, 'index']);
+    Route::get('/{book}/download', [BookController::class, 'download'])->name('api.books.download');
+    Route::get('/{book}', [BookController::class, 'show']);
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/', [BookController::class, 'store']);
+        Route::put('/{book}', [BookController::class, 'update']);
+        Route::delete('/{book}', [BookController::class, 'destroy']);
+        Route::get('/pending/approval', [BookController::class, 'pendingApproval']);
+        Route::post('/{book}/approve', [BookController::class, 'approve']);
+    });
+});
 
 /*
 |------------------------------------------------------------------
 | Book Series Routes
 |------------------------------------------------------------------
 */
-Route::apiResource('book-series', BookSeriesController::class);
+Route::prefix('book-series')->group(function () {
+    Route::get('/', [BookSeriesController::class, 'index']);
+    Route::get('/{series}', [BookSeriesController::class, 'show']);
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/', [BookSeriesController::class, 'store']);
+        Route::put('/{series}', [BookSeriesController::class, 'update']);
+        Route::delete('/{series}', [BookSeriesController::class, 'destroy']);
+    });
+});
 
 /*
 |------------------------------------------------------------------
 | Comment Routes
 |------------------------------------------------------------------
 */
-Route::post('/books/{bookId}/comments', [CommentController::class, 'store']);
-Route::put('/books/{bookId}/comments/{commentId}', [CommentController::class, 'update']);
-Route::delete('/books/{bookId}/comments/{commentId}', [CommentController::class, 'destroy']);
-Route::get('/books/{bookId}/comments', [CommentController::class, 'index']);
+Route::prefix('books/{bookId}/comments')->group(function () {
+    Route::get('/', [CommentController::class, 'index']);
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/', [CommentController::class, 'store']);
+        Route::put('/{commentId}', [CommentController::class, 'update']);
+        Route::delete('/{commentId}', [CommentController::class, 'destroy']);
+    });
+});
 
 /*
 |------------------------------------------------------------------
@@ -88,14 +108,17 @@ Route::get('/downloads', [DownloadController::class, 'index']);
 | Role Management Routes
 |------------------------------------------------------------------
 */
-Route::apiResource('roles', RolesController::class);
+Route::prefix('roles')->group(function () {
+    Route::get('/', [RolesController::class, 'index']);
+    Route::post('/', [RolesController::class, 'store']);
+    Route::get('/{role}', [RolesController::class, 'show']);
+    Route::put('/{role}', [RolesController::class, 'update']);
+    Route::delete('/{role}', [RolesController::class, 'destroy']);
+})->middleware('auth:sanctum');
 
-Route::get('/permissions', function (Request $request) {
-    $permissions = Permission::all();
-    return response()->json([
-        'data' => $permissions,
-    ]);
-});
+Route::get('/permissions', function () {
+    return response()->json(['data' => Permission::all()]);
+})->middleware('auth:sanctum');
 
 /*
 |------------------------------------------------------------------
@@ -110,14 +133,22 @@ Route::prefix('users')->group(function () {
     Route::delete('/{user}', [UserController::class, 'destroy']);
     Route::post('/{user}/roles/add', [UserController::class, 'addRole'])->name('users.roles.add');
     Route::post('/{user}/roles/remove', [UserController::class, 'removeRole'])->name('users.roles.remove');
-});
+})->middleware('auth:sanctum');
 
 /*
 |------------------------------------------------------------------
 | Category Management Routes
 |------------------------------------------------------------------
 */
-Route::apiResource('categories', CategoryController::class);
+Route::prefix('categories')->group(function () {
+    Route::get('/', [CategoryController::class, 'index']);
+    Route::get('/{category}', [CategoryController::class, 'show']);
+        Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/', [CategoryController::class, 'store']);
+    Route::put('/{category}', [CategoryController::class, 'update']);
+    Route::delete('/{category}', [CategoryController::class, 'destroy']);
+});
+});
 
 /*
 |------------------------------------------------------------------
@@ -127,9 +158,11 @@ Route::apiResource('categories', CategoryController::class);
 Route::prefix('category-groups')->group(function () {
     Route::get('/', [CategoryController::class, 'categoryGroups']);
     Route::get('/{id}', [CategoryController::class, 'showCategoryGroup']);
+        Route::middleware('auth:sanctum')->group(function () {
     Route::post('/', [CategoryController::class, 'storeCategoryGroup']);
     Route::put('/{id}', [CategoryController::class, 'updateCategoryGroup']);
     Route::delete('/{id}', [CategoryController::class, 'destroyCategoryGroup']);
+});
 });
 
 /*
@@ -139,12 +172,14 @@ Route::prefix('category-groups')->group(function () {
 */
 Route::prefix('notifications')->group(function () {
     Route::delete('/delete-all', [NotificationController::class, 'deleteAllNotifications']);
-    Route::post('/send/all', [NotificationController::class, 'sendToAllUsers']);
-    Route::post('/send/user/{id}', [NotificationController::class, 'sendToSpecificUser']);
     Route::get('/user', [NotificationController::class, 'getUserNotifications']);
     Route::get('/user/read', [NotificationController::class, 'getReadNotifications']);
     Route::post('/read/{notificationId}', [NotificationController::class, 'markAsRead']);
+        Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/send/user/{id}', [NotificationController::class, 'sendToSpecificUser']);
+    Route::post('/send/all', [NotificationController::class, 'sendToAllUsers']);
     Route::delete('/{notificationId}', [NotificationController::class, 'deleteNotification']);
+});
 });
 
 /*
@@ -155,8 +190,8 @@ Route::prefix('notifications')->group(function () {
 Route::prefix('authors')->group(function () {
     Route::get('/', [AuthorController::class, 'index']);
     Route::get('/{author}', [AuthorController::class, 'show']);
-    Route::delete('/{id}', [AuthorController::class, 'delete']);
     Route::get('/{id}/books', [AuthorController::class, 'booksByAuthor']);
+    Route::delete('/{id}', [AuthorController::class, 'delete'])->middleware('auth:sanctum');
 });
 
 /*
@@ -170,5 +205,4 @@ Route::prefix('author-requests')->group(function () {
     Route::post('/{id}/handle', [AuthorController::class, 'handleRequest']);
     Route::post('/{id}/update', [AuthorController::class, 'updateAuthorRequest']);
     Route::post('/{id}/handle-update', [AuthorController::class, 'handleUpdateRequest']);
-});
-});
+})->middleware('auth:sanctum');
