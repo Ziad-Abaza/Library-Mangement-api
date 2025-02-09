@@ -105,15 +105,21 @@ class UserController extends Controller
             if ($request->hasFile('image')) {
                 $user->addMediaFromRequest('image')->toMediaCollection('images');
             } else {
-                $user->addMediaFromUrl(app()->environment('APP_URL') . '/assets/images/static/person.png')
-                    ->toMediaCollection('images');
+                $defaultImage = config('app.url') . '/assets/images/static/person.png';
+                $user->addMediaFromUrl($defaultImage)->toMediaCollection('images');
             }
 
             return response()->json(['message' => 'User created successfully']);
-        } catch (Exception $e) {
-            return response()->json(['error' => 'Failed to create user.'], Response::HTTP_INTERNAL_SERVER_ERROR);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'error' => 'Failed to create user.',
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
+
 
     /*
     |------------------------------------------------------

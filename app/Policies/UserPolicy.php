@@ -44,21 +44,22 @@ class UserPolicy
     */
     public function update(User $user, User $model)
     {
-        // Prevent updating if the user is superAdmin or same user
+        // Prevent updating a superAdmin user (superAdmins cannot be modified)
         if ($model->hasRole('superAdmin')) {
             return false;
         }
 
+        // Prevent users from updating their own accounts
         if ($user->id === $model->id) {
             return false;
         }
 
-        // Prevent update if the user has lower or equal role level
+        // Ensure the user has a higher role level than the target user
         if ($user->getRoleLevel() <= $model->getRoleLevel()) {
             return false;
         }
 
-        // Check if the user has permission to edit users
+        // Finally, check if the user has explicit permission to edit users
         return $user->hasPermission('edit-user');
     }
 
