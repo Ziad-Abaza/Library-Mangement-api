@@ -52,13 +52,16 @@ class AuthorController extends Controller
         ]);
 
         try {
+
+            $user = Auth::user();
+            $status = ($user->role === 'admin' || $user->role === 'superAdmin') ? 'rejected' : 'pending';
             // Create a new author request
             $authorRequest = AuthorRequest::create([
                 'name' => $validated['name'],
                 'biography' => $validated['biography'] ?? null,
                 'birthdate' => $validated['birthdate'] ?? null,
                 'user_id' => Auth::id(),
-                'status' => 'pending',
+                'status' => $status,
             ]);
 
             // Handle image upload or use default image
@@ -161,10 +164,13 @@ class AuthorController extends Controller
                 'image' => 'nullable|image',
             ]);
 
+            $user = Auth::user();
+            $status = ($user->role === 'admin' || $user->role === 'superAdmin') ? 'rejected' : 'pending';
+
             // Create a new update request
             $authorRequest = AuthorRequest::create(array_merge($validated, [
                 'user_id' => Auth::id(),
-                'status' => 'pending',
+                'status' => $status,
                 'author_id' => $id,
             ]));
 
