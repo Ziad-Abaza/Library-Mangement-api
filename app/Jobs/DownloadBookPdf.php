@@ -12,73 +12,52 @@ use Illuminate\Queue\SerializesModels;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Exception;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class DownloadBookPdf implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    protected $book;
+    protected $bookId;
     protected $userId;
 
-    /**
-     * Constructor to initialize the job with the necessary data.
-     *
-     * @param Book $book The book to be downloaded.
-     * @param int|null $userId The ID of the user downloading the book.
-     */
-    public function __construct(Book $book, int $userId = null)
+    public function __construct(int $bookId, int $userId = null)
     {
-        $this->book = $book;
+        $this->bookId = $bookId;
         $this->userId = $userId;
     }
 
-    /**
-     * Handle the book download process.
-     *
-     * @return BinaryFileResponse The response to download the book's PDF file.
-     * @throws Exception If the book or its file is not valid or found.
-     */
-    public function handle(): BinaryFileResponse
+    public function handle()
     {
         try {
-            // Ensure the book exists and is valid
-            if (!$this->book || !$this->book->exists) {
-                throw new Exception('The specified book is not valid or does not exist.');
+            $book = Book::find($this->bookId);
+            if (!$book) {
+                throw new Exception('The specified book does not exist.');
             }
 
-            // Retrieve the file URL for the book
-            $fileUrl = $this->book->getFirstMediaPath('file');
-
-            // Check if the file exists
-            if (!$fileUrl || !file_exists($fileUrl)) {
+            $fileUrl = $book->getFirstMediaPath('file');
+            if (!$fileUrl || !Storage::exists($fileUrl)) {
                 throw new Exception('File not found.');
             }
 
-            // Increment the book's download count
-            $this->book->increment('downloads_count');
+            $book->increment('downloads_count');
 
-            // Log the download in the database if a user ID is provided
             if ($this->userId) {
                 Download::create([
                     'user_id' => $this->userId,
-                    'book_id' => $this->book->id,
+                    'book_id' => $book->id,
                 ]);
             }
 
-            // Return the file as a downloadable response
-            return response()->download($fileUrl, "{$this->book->title}.pdf");
-
+            Log::info('Download job processed successfully', [
+                'book_id' => $book->id,
+                'user_id' => $this->userId,
+            ]);
         } catch (Exception $e) {
-            // Log the error for debugging purposes
             Log::error('Failed to handle book download', [
-                'book_id' => $this->book->id ?? null,
+                'book_id' => $this->bookId ?? null,
                 'error' => $e->getMessage(),
             ]);
-
-            // Return a JSON response indicating an error occurred
-            return response()->json([
-                'error' => 'An error occurred while processing the download request.'
-            ], 500);
         }
     }
 }
