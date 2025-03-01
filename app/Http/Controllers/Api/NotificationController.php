@@ -39,7 +39,11 @@ class NotificationController extends Controller
     {
         $request->validate(['message' => 'required|string']);
 
-        $user = User::findOrFail($id);
+        $user = User::find($id);
+        if (!$user) {
+            return response()->json(['message' => 'User not found.'], 404);
+        }
+
         $user->notify(new GeneralNotification($request->message));
 
         return response()->json(['message' => 'Notification sent to user.']);
@@ -47,13 +51,25 @@ class NotificationController extends Controller
 
     public function getUserNotifications()
     {
-        $user = auth()->user();
+        $userID = auth()->id();
+        $user = User::find($userID);
+
+        if (!$user) {
+            return response()->json([]);
+        }
+
         return NotificationResource::collection($user->unreadNotifications);
     }
 
     public function getReadNotifications()
     {
-        $user = auth()->user();
+        $userID = auth()->id();
+        $user = User::find($userID);
+
+        if (!$user) {
+            return response()->json([]);
+        }
+
         $readNotifications = $user->notifications()->whereNotNull('read_at')->get();
 
         return NotificationResource::collection($readNotifications);
@@ -61,7 +77,13 @@ class NotificationController extends Controller
 
     public function deleteAllNotifications()
     {
-        $user = auth()->user();
+        $userID = auth()->id();
+        $user = User::find($userID);
+
+        if (!$user) {
+            return response()->json([]);
+        }
+
         $user->notifications()->forceDelete();
 
         return response()->json(['message' => 'All notifications deleted.']);
@@ -69,8 +91,18 @@ class NotificationController extends Controller
 
     public function markAsRead($notificationId)
     {
-        $user = auth()->user();
-        $notification = $user->notifications()->findOrFail($notificationId);
+        $userID = auth()->id();
+        $user = User::find($userID);
+
+        if (!$user) {
+            return response()->json([]);
+        }
+
+        $notification = $user->notifications()->find($notificationId);
+        if (!$notification) {
+            return response()->json([]);
+        }
+
         $notification->update(['read_at' => now()]);
 
         return response()->json(['message' => 'Notification marked as read.']);
@@ -78,8 +110,18 @@ class NotificationController extends Controller
 
     public function deleteNotification($notificationId)
     {
-        $user = auth()->user();
-        $notification = $user->notifications()->findOrFail($notificationId);
+        $userID = auth()->id();
+        $user = User::find($userID);
+
+        if (!$user) {
+            return response()->json([]);
+        }
+
+        $notification = $user->notifications()->find($notificationId);
+        if (!$notification) {
+            return response()->json([]);
+        }
+
         $notification->delete();
 
         return response()->json(['message' => 'Notification deleted.']);
