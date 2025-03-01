@@ -117,7 +117,7 @@ class BookController extends Controller
             // Add the current user ID and set the status to 'pending' for new books
             $validatedData['user_id']  = auth()->id();
             $user = auth()->user();
-            if ($user->role === 'admin' || $user->role === 'superAdmin') {
+            if ($user->hasRole('admin') || $user->hasRole('superAdmin')) {
                 $validatedData['status'] = 'approved';
             } else {
                 $validatedData['status'] = 'pending';
@@ -240,11 +240,12 @@ class BookController extends Controller
             // Add user ID and set the book status to pending
             $validatedData['user_id'] = auth()->id();
             $user = auth()->user();
-            if ($user->role === 'admin' || $user->role === 'superAdmin') {
+            if ($user->hasRole('admin') || $user->hasRole('superAdmin')) {
                 $validatedData['status'] = 'approved';
             } else {
                 $validatedData['status'] = 'pending';
             }
+
 
             // Update the book with validated data
             $book->update($validatedData);
