@@ -159,7 +159,7 @@ class CategoryController extends Controller
 
         } catch (Exception $e) {
             // Return error response if exception occurs
-            return response()->json(['error' => 'Error updating category'], Response::HTTP_INTERNAL_SERVER_ERROR);
+            return response()->json(['error' => 'Error updating category '. $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 
