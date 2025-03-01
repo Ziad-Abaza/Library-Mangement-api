@@ -14,31 +14,19 @@ class NotificationController extends Controller
 {
     protected $environment;
 
-    /*
-    |------------------------------------------------------
-    | Constructor to handle authorization based on environment
-    |------------------------------------------------------
-    */
     public function __construct()
     {
         $this->environment = env('DEV_ENVIRONMENT', false);
         if ($this->environment) {
-            Auth::loginUsingId(1); // Auto-login for development
+            Auth::loginUsingId(1);
         }
     }
 
-    /*
-    |------------------------------------------------------
-    | Send notification to all active users
-    |------------------------------------------------------
-    */
     public function sendToAllUsers(Request $request)
     {
-        $request->validate([
-            'message' => 'required|string',
-        ]);
+        $request->validate(['message' => 'required|string']);
 
-        User::where('is_active', true)->chunk(100, function ($users) use ($request) {
+        User::where('is_active', true)->chunkById(100, function ($users) use ($request) {
             foreach ($users as $user) {
                 SendNotificationJob::dispatch($user, $request->message)->delay(now()->addSeconds(5));
             }
@@ -47,16 +35,9 @@ class NotificationController extends Controller
         return response()->json(['message' => 'Notification sent to all active users in background.']);
     }
 
-    /*
-    |------------------------------------------------------
-    | Send notification to a specific user
-    |------------------------------------------------------
-    */
     public function sendToSpecificUser(Request $request, $id)
     {
-        $request->validate([
-            'message' => 'required|string',
-        ]);
+        $request->validate(['message' => 'required|string']);
 
         $user = User::findOrFail($id);
         $user->notify(new GeneralNotification($request->message));
@@ -64,86 +45,41 @@ class NotificationController extends Controller
         return response()->json(['message' => 'Notification sent to user.']);
     }
 
-    /*
-    |------------------------------------------------------
-    | Retrieve unread notifications for the authenticated user
-    |------------------------------------------------------
-    */
     public function getUserNotifications()
     {
-        // Use the logged-in user (development mode uses ID 1)
         $user = auth()->user();
-
-        // Fetch only unread notifications
-        $unreadNotifications = $user->unreadNotifications();
-
-        return NotificationResource::collection($unreadNotifications);
+        return NotificationResource::collection($user->unreadNotifications);
     }
 
-    /*
-    |------------------------------------------------------
-    | Retrieve read notifications for the authenticated user
-    |------------------------------------------------------
-    */
     public function getReadNotifications()
     {
-        // Use the logged-in user (development mode uses ID 1)
-        $user =  auth()->user();
-        // $user = User::find(1);
-        // Fetch only read notifications
+        $user = auth()->user();
         $readNotifications = $user->notifications()->whereNotNull('read_at')->get();
 
         return NotificationResource::collection($readNotifications);
     }
 
-    /*
-    |------------------------------------------------------
-    | Delete all notifications for the authenticated user
-    |------------------------------------------------------
-    */
     public function deleteAllNotifications()
     {
-        // Use the logged-in user (development mode uses ID 1)
         $user = auth()->user();
-        // $user = User::find(1);
-        // Delete all notifications for the user
-        $user->notifications()->delete();
+        $user->notifications()->forceDelete();
 
         return response()->json(['message' => 'All notifications deleted.']);
     }
 
-    /*
-    |------------------------------------------------------
-    | Mark a specific notification as read
-    |------------------------------------------------------
-    */
     public function markAsRead($notificationId)
     {
         $user = auth()->user();
-        // $user = User::find(1);
-        // Find the notification for the selected user
         $notification = $user->notifications()->findOrFail($notificationId);
-
-        // Mark the notification as read
-        $notification->markAsRead();
+        $notification->update(['read_at' => now()]);
 
         return response()->json(['message' => 'Notification marked as read.']);
     }
 
-    /*
-    |------------------------------------------------------
-    | Delete a specific notification
-    |------------------------------------------------------
-    */
     public function deleteNotification($notificationId)
     {
         $user = auth()->user();
-        // $user = User::find(1);
-
-        // Find the notification for the selected user
         $notification = $user->notifications()->findOrFail($notificationId);
-
-        // Delete the notification
         $notification->delete();
 
         return response()->json(['message' => 'Notification deleted.']);

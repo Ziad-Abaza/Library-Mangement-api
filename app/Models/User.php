@@ -9,8 +9,8 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
-use APP\Notifications\GeneralNotification;
-use Illuminate\Notifications\DatabaseNotification as Notification;
+use App\Notifications\GeneralNotification;
+use Illuminate\Notifications\DatabaseNotification;
 
 class User extends Authenticatable implements HasMedia
 {
@@ -85,13 +85,12 @@ class User extends Authenticatable implements HasMedia
 
     public function notifications()
     {
-        return $this->morphMany(Notification::class, 'notifiable');
+        return $this->morphMany(DatabaseNotification::class, 'notifiable');
     }
-
 
     public function markNotificationsAsRead()
     {
-        $this->unreadNotifications->markAsRead();
+        $this->unreadNotifications()->update(['read_at' => now()]);
     }
 
     public function sendNotification($message)
@@ -101,9 +100,8 @@ class User extends Authenticatable implements HasMedia
 
     public function unreadNotifications()
     {
-        return $this->notifications()->whereNull('read_at')->get();
+        return $this->notifications()->whereNull('read_at');
     }
-
 
     /**
      * The attributes that should be hidden for serialization.
