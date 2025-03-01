@@ -425,6 +425,7 @@ class BookController extends Controller
         // Clear cache for the list of books
         Cache::forget('books_list');
 
+        Cache::flush();
         // If a specific book is provided, clear its cached data
         if ($book) {
             Cache::forget("book_{$book->id}");

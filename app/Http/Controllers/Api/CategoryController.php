@@ -38,41 +38,34 @@ class CategoryController extends Controller
     public function index(Request $request)
     {
         try {
-            // Authorization check for non-development environment
-            // if(!$this->environment){
-            //     $this->authorize('viewAny', Category::class); // Ensure user has permission to view categories
-            // }
-
             // Retrieve categories from cache or database if not cached
-            $categories = Cache::remember('categories_index_' . md5($request->fullUrl()), 120, function () use ($request) {
-                $query = Category::with('categoryGroup'); // Include related category group
+            $categories = Cache::remember('categories_index', 120, function () use ($request) {
+                $query = Category::with('categoryGroup');
 
                 // Apply search filter if provided
                 if ($request->filled('search')) {
                     $query->where(function ($q) use ($request) {
-                        $q->where('name', 'like', '%' . $request->search . '%') // Search by category name
-                          ->orWhereHas('categoryGroup', function ($q) use ($request) {
-                              $q->where('name', 'like', '%' . $request->search . '%'); // Search by category group name
-                          });
+                        $q->where('name', 'like', '%' . $request->search . '%')
+                            ->orWhereHas('categoryGroup', function ($q) use ($request) {
+                                $q->where('name', 'like', '%' . $request->search . '%');
+                            });
                     });
                 }
 
                 // Filter by group ID if provided
                 if ($request->filled('group_id')) {
-                    $query->where('category_group_id', $request->group_id); // Filter by group ID
+                    $query->where('category_group_id', $request->group_id);
                 }
 
-                return $query->get(); // Return categories
+                return $query->get();
             });
 
-            // Return paginated categories in API resource format
             return CategoryResource::collection($categories);
-
         } catch (Exception $e) {
-            // Return error response if exception occurs
             return response()->json(['error' => 'Error fetching categories', 'message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
+
 
     /*
     |------------------------------------------------------
@@ -123,8 +116,7 @@ class CategoryController extends Controller
             $category = Category::create($validated);
 
             // Forget the cached list of categories so it can be refreshed
-            Cache::forget('categories_index_' . md5($request->fullUrl()));
-
+            Cache::forget('categories_index');
             // Return newly created category in API resource format
             return new CategoryResource($category);
 
@@ -161,8 +153,7 @@ class CategoryController extends Controller
             $category->update($validated);
 
             // Forget the cached list of categories to ensure it reflects the update
-            Cache::forget('categories_index_' . md5($request->fullUrl()));
-
+            Cache::forget('categories_index');
             // Return the updated category in API resource format
             return new CategoryResource($category);
 
@@ -192,10 +183,7 @@ class CategoryController extends Controller
             $category->delete();
 
             // Clear the cached categories to reflect the deletion
-            $cacheKey = 'categories_index_' . md5(request()->fullUrl());
-            if (Cache::has($cacheKey)) {
-                Cache::forget($cacheKey); // Remove cached list of categories
-            }
+            Cache::forget('categories_index');
 
             // Return success response
             return response()->json(['message' => 'Category deleted successfully'], Response::HTTP_OK);
@@ -218,7 +206,7 @@ class CategoryController extends Controller
             // }
 
             // Using Cache to store the category groups for 120 minutes based on the request URL.
-            $categoryGroups = Cache::remember('category_groups_' . md5($request->fullUrl()), 120, function () use ($request) {
+            $categoryGroups = Cache::remember('category_groups', 120, function () use ($request) {
                 $query = CategoryGroup::with('categories');
 
                 // If 'search' parameter is present, filter by name.
@@ -284,6 +272,8 @@ class CategoryController extends Controller
             // Create a new category group with validated data.
             $categoryGroup = CategoryGroup::create($validated);
 
+            Cache::forget('category_groups');
+
             // Return the created category group as a resource.
             return new CategoryGroupResource($categoryGroup);
 
@@ -317,6 +307,8 @@ class CategoryController extends Controller
             // Update the category group with the validated data.
             $categoryGroup->update($validated);
 
+            Cache::forget('category_groups');
+
             // Return the updated category group as a resource.
             return new CategoryGroupResource($categoryGroup);
 
@@ -344,6 +336,8 @@ class CategoryController extends Controller
 
             // Delete the category group.
             $categoryGroup->delete();
+
+            Cache::forget('category_groups');
 
             // Return a success response indicating the category group was deleted.
             return response()->json(['message' => 'Category group deleted successfully'], Response::HTTP_NO_CONTENT);

@@ -92,7 +92,7 @@ class UserController extends Controller
             if ($request->hasFile('image')) {
                 $user->addMediaFromRequest('image')->toMediaCollection('images');
             }
-
+            Cache::flush();
             return response()->json(['message' => 'User created successfully']);
         } catch (Exception $e) {
             return response()->json(['error' => 'Failed to create user.'], Response::HTTP_INTERNAL_SERVER_ERROR);
@@ -132,6 +132,7 @@ class UserController extends Controller
                 $user->clearMediaCollection('images');
                 $user->addMediaFromRequest('image')->toMediaCollection('images');
             }
+            Cache::flush();
             return new UserResource($user);
         } catch (ModelNotFoundException $e) {
             return response()->json(['error' => 'User not found.'], Response::HTTP_NOT_FOUND);
@@ -151,6 +152,7 @@ class UserController extends Controller
         try {
             $user->clearMediaCollection('images');
             $user->delete();
+            Cache::flush();
             return response()->json(['message' => 'User deleted successfully'], Response::HTTP_NO_CONTENT);
         } catch (ModelNotFoundException $e) {
             return response()->json(['error' => 'User not found.'], Response::HTTP_NOT_FOUND);
@@ -175,6 +177,7 @@ class UserController extends Controller
             $user->roles()->attach($validated['role_id']);
             $role = Role::find($validated['role_id']);
             $user->notify(new RoleChangedNotification($user, $role));
+            Cache::flush();
 
             return response()->json(['message' => 'Role added successfully'], Response::HTTP_OK);
         } catch (ModelNotFoundException $e) {
@@ -200,7 +203,8 @@ class UserController extends Controller
             $user->roles()->detach($validated['role_id']);
             $role = Role::find($validated['role_id']);
             $user->notify(new RoleChangedNotification($user, $role));
-
+            Cache::flush();
+            
             return response()->json(['message' => 'Role removed successfully'], Response::HTTP_OK);
         } catch (ModelNotFoundException $e) {
             return response()->json(['error' => 'User not found.'], Response::HTTP_NOT_FOUND);

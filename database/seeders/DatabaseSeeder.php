@@ -18,15 +18,15 @@ class DatabaseSeeder extends Seeder
             PermissionsSeeder::class,
             RoleUserSeeder::class,
             PermissionRoleSeeder::class,
-            
+
             CategoryGroupsSeeder::class,
-            CategorySeeder::class,
-            AuthorSeeder::class,
-            BookSeriesSeeder::class,
-            BooksSeeder::class,
-            CommentsSeeder::class,
-            KeywordsSeeder::class,
-            NotificationSeeder::class,
+            // CategorySeeder::class,
+            // AuthorSeeder::class,
+            // BookSeriesSeeder::class,
+            // BooksSeeder::class,
+            // CommentsSeeder::class,
+            // KeywordsSeeder::class,
+            // NotificationSeeder::class,
 
         ]);
     }
