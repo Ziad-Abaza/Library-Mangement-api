@@ -70,8 +70,6 @@ class AuthorController extends Controller
                     $author->addMedia(app()->environment('APP_URL') . '/assets/images/static/person.png')->toMediaCollection('authors');
                 }
 
-                Cache::forget('authors');
-
                 return response()->json(['message' => 'Author created successfully'], Response::HTTP_CREATED);
             }
 
@@ -88,6 +86,10 @@ class AuthorController extends Controller
             } else {
                 $authorRequest->addMedia(app()->environment('APP_URL') . '/assets/images/static/person.png')->toMediaCollection('author_requests');
             }
+
+            Cache::forget('authors');
+            Cache::forget('authorRequests');
+            Cache::flush();
 
             return response()->json(['message' => 'Author request submitted successfully'], Response::HTTP_CREATED);
         } catch (\Exception $e) {
@@ -148,6 +150,8 @@ class AuthorController extends Controller
                 $authorRequest->delete();
                 // delete cache
                 Cache::forget('authors');
+                Cache::forget('authorRequests');
+                Cache::flush();
 
                 return response()->json(['message' => 'Author request approved and author created'], Response::HTTP_OK);
             } else {
@@ -198,9 +202,6 @@ class AuthorController extends Controller
                     $author->addMedia($request->file('image'))->toMediaCollection('authors');
                 }
 
-                // Clear cache after updating
-                Cache::forget('author');
-
                 return response()->json(['message' => 'Author updated successfully'], Response::HTTP_OK);
             }
 
@@ -215,8 +216,10 @@ class AuthorController extends Controller
                 $authorRequest->addMedia($request->file('image'))->toMediaCollection('author_requests');
             }
 
-            // Clear cache after submitting the request
-            Cache::forget('author');
+            // Clear cache after updating
+            Cache::forget('authors');
+            Cache::forget('author_' . $id);
+            Cache::flush();
 
             return response()->json(['message' => 'Author update request submitted successfully'], Response::HTTP_CREATED);
         } catch (ModelNotFoundException $e) {
@@ -260,9 +263,12 @@ class AuthorController extends Controller
                     $media->copy($author, 'authors');
                 }
 
-                // delete cache
-                Cache::forget('authors');
                 $authorRequest->delete();
+
+                Cache::forget('authors');
+                Cache::forget('authorRequests');
+                Cache::forget('author_' . $id);
+                Cache::flush();
 
                 return response()->json(['message' => 'Author update approved and changes applied'], Response::HTTP_OK);
             } else {
@@ -380,7 +386,10 @@ class AuthorController extends Controller
             $author->delete(); // Delete the author record
 
             // delete cache
+            Cache::forget('authors');
+            Cache::forget('authorRequests');
             Cache::forget("author_{$id}");
+            Cache::flush();
 
             return response()->json(['message' => 'Author deleted successfully'], Response::HTTP_OK);
         } catch (\Exception $e) {
