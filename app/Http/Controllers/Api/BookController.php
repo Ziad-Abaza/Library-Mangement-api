@@ -15,7 +15,6 @@ use Smalot\PdfParser\Parser;
 use App\Actions\PublishNewBookAction;
 use App\Actions\MarkBookAsPopularAction;
 use App\Notifications\PublicationNotification;
-use Exception;
 
 class BookController extends Controller
 {
@@ -439,22 +438,31 @@ class BookController extends Controller
     |> Dispatch a job to download the book PDF
     |--------------------------------
     */
-    public function download($id)
-    {
-        try {
-            $book = Book::findOrFail($id);
-            $userId = Auth::id();
+    public function download(Book $book)
+        {
+            try {
+                // Ensure the book file exists before proceeding
+                $filePath = $book->getFirstMediaPath('file');
+                if (!$filePath || !file_exists($filePath)) {
+                    return response()->json(['error' => 'The book file does not exist.'], Response::HTTP_NOT_FOUND);
+                }
+                $userId = Auth::check() ? Auth::id() : null;
 
-            // إرسال المهمة إلى الطابور
-            dispatch(new DownloadBookPdf($book->id, $userId));
+                // Dispatch a job to handle the download, passing the user ID
+                DownloadBookPdf::dispatch($book, $userId);
 
-            return response()->json([
-                'message' => 'Download is being processed. You will be notified when ready.'
-            ], 202);
-        } catch (Exception $e) {
-            return response()->json([
-                'error' => 'Failed to process download: ' . $e->getMessage()
-            ], 500);
+                // Mark the book as popular if it meets criteria
+                (new MarkBookAsPopularAction())->markBookAsPopular($book);
+
+                // Respond to the user
+                return response()->json([
+                    'message' => 'Your download is being processed and will start shortly.'
+                ], Response::HTTP_ACCEPTED);
+
+            } catch (\Throwable $e) {
+                return response()->json([
+                    'error' => 'An unexpected error occurred while processing your request.'
+                ], Response::HTTP_INTERNAL_SERVER_ERROR);
+            }
         }
-    }
 }
