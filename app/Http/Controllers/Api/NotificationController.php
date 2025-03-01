@@ -73,10 +73,9 @@ class NotificationController extends Controller
     {
         // Use the logged-in user (development mode uses ID 1)
         $user = auth()->user();
-        // $user = User::find(1);
 
         // Fetch only unread notifications
-        $unreadNotifications = $user->unreadNotifications;
+        $unreadNotifications = $user->unreadNotifications();
 
         return NotificationResource::collection($unreadNotifications);
     }
@@ -89,7 +88,7 @@ class NotificationController extends Controller
     public function getReadNotifications()
     {
         // Use the logged-in user (development mode uses ID 1)
-        $user = $this->environment ? User::find(1) : auth()->user();
+        $user =  auth()->user();
         // $user = User::find(1);
         // Fetch only read notifications
         $readNotifications = $user->notifications()->whereNotNull('read_at')->get();
@@ -105,7 +104,7 @@ class NotificationController extends Controller
     public function deleteAllNotifications()
     {
         // Use the logged-in user (development mode uses ID 1)
-        $user = $this->environment ? User::find(1) : auth()->user();
+        $user = auth()->user();
         // $user = User::find(1);
         // Delete all notifications for the user
         $user->notifications()->delete();
@@ -120,7 +119,7 @@ class NotificationController extends Controller
     */
     public function markAsRead($notificationId)
     {
-        $user = $this->environment ? User::find(1) : auth()->user();
+        $user = auth()->user();
         // $user = User::find(1);
         // Find the notification for the selected user
         $notification = $user->notifications()->findOrFail($notificationId);
@@ -138,7 +137,7 @@ class NotificationController extends Controller
     */
     public function deleteNotification($notificationId)
     {
-        $user = $this->environment ? User::find(1) : auth()->user();
+        $user = auth()->user();
         // $user = User::find(1);
 
         // Find the notification for the selected user

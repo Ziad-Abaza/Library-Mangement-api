@@ -101,7 +101,7 @@ class User extends Authenticatable implements HasMedia
 
     public function unreadNotifications()
     {
-        return $this->notifications()->whereNull('read_at');
+        return $this->notifications()->whereNull('read_at')->get();
     }
 
 
