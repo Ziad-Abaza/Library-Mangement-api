@@ -177,11 +177,11 @@ Route::prefix('category-groups')->group(function () {
 |------------------------------------------------------------------
 */
 Route::prefix('notifications')->group(function () {
+    Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/delete-all', [NotificationController::class, 'deleteAllNotifications']);
     Route::get('/user', [NotificationController::class, 'getUserNotifications']);
     Route::get('/user/read', [NotificationController::class, 'getReadNotifications']);
     Route::post('/read/{notificationId}', [NotificationController::class, 'markAsRead']);
-    Route::middleware('auth:sanctum')->group(function () {
         Route::post('/send/user/{id}', [NotificationController::class, 'sendToSpecificUser']);
         Route::post('/send/all', [NotificationController::class, 'sendToAllUsers']);
         Route::delete('/{notificationId}', [NotificationController::class, 'deleteNotification']);
