@@ -118,7 +118,7 @@ class BookController extends Controller
             $validatedData['user_id']  = auth()->id();
             $user = auth()->user();
             if ($user->role === 'admin' || $user->role === 'superAdmin') {
-                $validatedData['status'] = 'rejected';
+                $validatedData['status'] = 'approved';
             } else {
                 $validatedData['status'] = 'pending';
             }
@@ -241,7 +241,7 @@ class BookController extends Controller
             $validatedData['user_id'] = auth()->id();
             $user = auth()->user();
             if ($user->role === 'admin' || $user->role === 'superAdmin') {
-                $validatedData['status'] = 'rejected';
+                $validatedData['status'] = 'approved';
             } else {
                 $validatedData['status'] = 'pending';
             }

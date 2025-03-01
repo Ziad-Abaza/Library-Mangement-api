@@ -54,7 +54,7 @@ class AuthorController extends Controller
         try {
 
             $user = Auth::user();
-            $status = ($user->role === 'admin' || $user->role === 'superAdmin') ? 'rejected' : 'pending';
+            $status = ($user->role === 'admin' || $user->role === 'superAdmin') ? 'approved' : 'pending';
             // Create a new author request
             $authorRequest = AuthorRequest::create([
                 'name' => $validated['name'],
@@ -170,7 +170,7 @@ class AuthorController extends Controller
             ]);
 
             $user = Auth::user();
-            $status = ($user->role === 'admin' || $user->role === 'superAdmin') ? 'rejected' : 'pending';
+            $status = ($user->role === 'admin' || $user->role === 'superAdmin') ? 'approved' : 'pending';
 
             // Create a new update request
             $authorRequest = AuthorRequest::create(array_merge($validated, [
