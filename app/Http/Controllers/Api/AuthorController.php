@@ -11,6 +11,8 @@ use App\Http\Resources\AuthorResource;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Validation\ValidationException;
+
 use Illuminate\Support\Facades\Cache;
 class AuthorController extends Controller
 {
@@ -31,7 +33,7 @@ class AuthorController extends Controller
         }
     }
 
-/*
+    /*
 |******************************************************************************************************
 | > Handles creating and processing Author requests
 |******************************************************************************************************
@@ -52,20 +54,35 @@ class AuthorController extends Controller
         ]);
 
         try {
-
             $user = Auth::user();
-            $status = ($user->hasRole('admin') || $user->hasRole('superAdmin')) ? 'approved' : 'pending';
 
-            // Create a new author request
+            if ($user->hasRole('admin') || $user->hasRole('superAdmin')) {
+                $author = Author::create([
+                    'name' => $validated['name'],
+                    'biography' => $validated['biography'] ?? null,
+                    'birthdate' => $validated['birthdate'] ?? null,
+                    'user_id' => $user->id,
+                ]);
+
+                if ($request->hasFile('image')) {
+                    $author->addMedia($request->file('image'))->toMediaCollection('authors');
+                } else {
+                    $author->addMedia(app()->environment('APP_URL') . '/assets/images/static/person.png')->toMediaCollection('authors');
+                }
+
+                Cache::forget('authors');
+
+                return response()->json(['message' => 'Author created successfully'], Response::HTTP_CREATED);
+            }
+
             $authorRequest = AuthorRequest::create([
                 'name' => $validated['name'],
                 'biography' => $validated['biography'] ?? null,
                 'birthdate' => $validated['birthdate'] ?? null,
-                'user_id' => Auth::id(),
-                'status' => $status,
+                'user_id' => $user->id,
+                'status' => 'pending',
             ]);
 
-            // Handle image upload or use default image
             if ($request->hasFile('image')) {
                 $authorRequest->addMedia($request->file('image'))->toMediaCollection('author_requests');
             } else {
@@ -73,13 +90,8 @@ class AuthorController extends Controller
             }
 
             return response()->json(['message' => 'Author request submitted successfully'], Response::HTTP_CREATED);
-
-        } catch (AuthorizationException $e) {
-            return response()->json([
-                'error' => 'Unauthorized action.'], Response::HTTP_FORBIDDEN);
         } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Failed to submit author request'], Response::HTTP_BAD_REQUEST);
+            return response()->json(['error' => 'Failed to process author request'], Response::HTTP_BAD_REQUEST);
         }
     }
 
@@ -128,7 +140,7 @@ class AuthorController extends Controller
                 // Copy media to the new author
                 if ($authorRequest->hasMedia('author_requests')) {
                     $media = $authorRequest->getFirstMedia('author_requests');
-                    $author->addMedia($media->getPath()) // استخدم المسار الكامل للملف
+                    $author->addMedia($media->getPath())
                            ->toMediaCollection('authors');
                 }
 
@@ -163,6 +175,7 @@ class AuthorController extends Controller
     public function updateAuthorRequest(Request $request, $id)
     {
         try {
+            // Validate the incoming request data
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
                 'biography' => 'nullable|string',
@@ -170,14 +183,31 @@ class AuthorController extends Controller
                 'image' => 'nullable|image',
             ]);
 
+            // Check if the author exists
+            $author = Author::findOrFail($id);
+
             $user = Auth::user();
-            $status = ($user->hasRole('admin') || $user->hasRole('superAdmin')) ? 'approved' : 'pending';
 
+            if ($user->hasRole('admin') || $user->hasRole('superAdmin')) {
+                // Directly update the author if the user has admin privileges
+                $author->update($validated);
 
-            // Create a new update request
+                // Handle image upload if provided
+                if ($request->hasFile('image')) {
+                    $author->clearMediaCollection('authors'); // Remove the old image
+                    $author->addMedia($request->file('image'))->toMediaCollection('authors');
+                }
+
+                // Clear cache after updating
+                Cache::forget('author');
+
+                return response()->json(['message' => 'Author updated successfully'], Response::HTTP_OK);
+            }
+
+            // If the user is not an admin, create an update request
             $authorRequest = AuthorRequest::create(array_merge($validated, [
-                'user_id' => Auth::id(),
-                'status' => $status,
+                'user_id' => $user->id,
+                'status' => 'pending',
                 'author_id' => $id,
             ]));
 
@@ -185,17 +215,19 @@ class AuthorController extends Controller
                 $authorRequest->addMedia($request->file('image'))->toMediaCollection('author_requests');
             }
 
-            // delete cache
+            // Clear cache after submitting the request
             Cache::forget('author');
 
             return response()->json(['message' => 'Author update request submitted successfully'], Response::HTTP_CREATED);
         } catch (ModelNotFoundException $e) {
             return response()->json(['error' => 'Author not found'], Response::HTTP_NOT_FOUND);
+        } catch (ValidationException $e) {
+            return response()->json(['error' => 'Invalid data', 'details' => $e->errors()], Response::HTTP_UNPROCESSABLE_ENTITY);
         } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Failed to submit author update request'], Response::HTTP_BAD_REQUEST);
+            return response()->json(['error' => 'An error occurred while processing the request'], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
+
 
     /*
     |------------------------------------------------------
