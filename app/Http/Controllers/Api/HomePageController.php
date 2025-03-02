@@ -31,7 +31,7 @@ class HomePageController extends Controller
             $latestBooks = Book::with(['category', 'author'])
                 ->where('status', 'approved')
                 ->orderBy('published_at', 'desc')
-                ->take(5)
+                ->take(6)
                 ->get()
                 ->map(function ($book) {
                     // Add cover image URL to each book
@@ -43,7 +43,7 @@ class HomePageController extends Controller
             $popularBooks = Book::with(['category', 'author'])
                 ->where('status', 'approved')
                 ->orderBy('views_count', 'desc')
-                ->take(5)
+                ->take(6)
                 ->get()
                 ->map(function ($book) {
                     // Add cover image URL to each book
@@ -56,7 +56,7 @@ class HomePageController extends Controller
                 ->where('status', 'approved')
                 ->withAvg('comments', 'rating') // Average rating of comments
                 ->orderByDesc('comments_avg_rating') // Sort by average rating
-                ->take(5)
+                ->take(6)
                 ->get()
                 ->map(function ($book) {
                     // Add cover image URL to each book
@@ -86,7 +86,7 @@ class HomePageController extends Controller
                             });
                     });
                 })
-                ->paginate(4); // Paginate the results
+                ->paginate(6); // Paginate the results
 
             // Return the compiled data as an array
             return [
