@@ -363,7 +363,19 @@ class AuthorController extends Controller
                 return response()->json(['error' => 'No approved books found for this author'], Response::HTTP_NOT_FOUND);
             }
 
-            return response()->json($books, Response::HTTP_OK); // Return books
+            // Add average rating to each book
+            $booksWithRatings = $books->map(function ($book) {
+                // Calculate average rating
+                $averageRating = $book->comments()->avg('rating');
+                $formattedRating = $averageRating ? number_format($averageRating, 1) : null;
+
+                // Add average rating to the book object
+                $book->average_rating = $formattedRating;
+
+                return $book;
+            });
+
+            return response()->json($booksWithRatings, Response::HTTP_OK);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Author not found', 'details' => $e->getMessage()], Response::HTTP_NOT_FOUND);
         }
