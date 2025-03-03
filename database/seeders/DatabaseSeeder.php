@@ -19,7 +19,7 @@ class DatabaseSeeder extends Seeder
             RoleUserSeeder::class,
             PermissionRoleSeeder::class,
             CategorySeeder::class,
-            
+
             // CategorySeeder::class,
             // AuthorSeeder::class,
             // BookSeriesSeeder::class,

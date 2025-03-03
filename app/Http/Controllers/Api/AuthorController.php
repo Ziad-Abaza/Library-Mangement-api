@@ -280,7 +280,7 @@ class AuthorController extends Controller
         }
     }
 
-/*
+    /*
 |******************************************************************************************************
 | > Handles Functions Resources For Authors
 |******************************************************************************************************
@@ -296,14 +296,14 @@ class AuthorController extends Controller
         try {
             $cacheKey = 'authors_' . md5(json_encode($request->all())); // Generate a cache key based on request data
             $authors = Cache::remember($cacheKey, 60, function () use ($request) {
-                $query = Author::with(['media']); // Include related media data
+                $query = Author::with(['media', 'books']); // Include related media data
 
                 // Apply search filter
                 if ($request->has('search')) {
                     $search = $request->input('search');
                     $query->where(function ($q) use ($search) {
                         $q->where('name', 'like', "%{$search}%")
-                        ->orWhere('biography', 'like', "%{$search}%");
+                            ->orWhere('biography', 'like', "%{$search}%");
                     });
                 }
 
@@ -324,7 +324,23 @@ class AuthorController extends Controller
                 return $query->get(); // Fetch the filtered data
             });
 
-            return AuthorResource::collection($authors); // Return authors in a resource format
+            // Transform the authors data to include books count
+            $transformedAuthors = $authors->map(function ($author) {
+                return [
+                    'id' => $author->id,
+                    'name' => $author->name,
+                    'biography' => $author->biography,
+                    'birthdate' => $author->birthdate,
+                    'user_id' => $author->user_id,
+                    'books_count' => $author->books->count(), // Calculate books count
+                    'request_image' => $author->getFirstMediaUrl('author_requests'),
+                    'profile_image' => $author->getFirstMediaUrl('authors'),
+                    'created_at' => $author->created_at->format('Y-m-d H:i:s'),
+                    'updated_at' => $author->updated_at->format('Y-m-d H:i:s'),
+                ];
+            });
+
+            return response()->json($transformedAuthors); // Return the transformed data
         } catch (\Exception $e) {
             return response()->json(['error' => 'Failed to retrieve authors', 'details' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
