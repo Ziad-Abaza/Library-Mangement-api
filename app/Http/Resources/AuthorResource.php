@@ -18,6 +18,9 @@ class AuthorResource extends JsonResource
             'birthdate' => $this->birthdate,
             'user_id' => $this->user_id,
             'books' => BookResource::collection($this->whenLoaded('books')),
+            'books_count' => $this->whenLoaded('books', function () {
+                return $this->books->count();
+            }),
             'request_image' => $this->getFirstMediaUrl('author_requests'),
             'profile_image' => $this->getFirstMediaUrl('authors'),
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
