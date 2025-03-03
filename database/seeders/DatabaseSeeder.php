@@ -18,8 +18,8 @@ class DatabaseSeeder extends Seeder
             PermissionsSeeder::class,
             RoleUserSeeder::class,
             PermissionRoleSeeder::class,
-
-            CategoryGroupsSeeder::class,
+            CategorySeeder::class,
+            
             // CategorySeeder::class,
             // AuthorSeeder::class,
             // BookSeriesSeeder::class,
