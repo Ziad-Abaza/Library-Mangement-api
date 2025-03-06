@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name')->unique();
             $table->text('biography')->nullable();
-            $table->date('birthdate')->nullable();
+            $table->text('birthdate')->nullable();
             $table->foreignId('user_id')->nullable()->constrained('users')->onUpdate('cascade');
             $table->timestamps();
         });

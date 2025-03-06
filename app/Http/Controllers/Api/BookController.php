@@ -103,7 +103,7 @@ class BookController extends Controller
                 'file' => 'required|file|mimes:pdf', // File must be a PDF
                 'edition_number' => 'nullable|string',
                 'lang' => 'required|string|max:10',
-                'published_at' => 'nullable|date',
+                'published_at' => 'nullable|string',
                 'publisher_name' => 'required|string|max:255',
                 'copyright_image' => 'required|file|image|mimes:jpg,png,jpeg', // Copyright image must be a valid image file
                 'cover_image' => 'nullable|image|mimes:jpg,jpeg,png',
@@ -226,7 +226,7 @@ class BookController extends Controller
                 'file' => 'nullable|file|mimes:pdf',
                 'edition_number' => 'nullable|string',
                 'lang' => 'required|string|max:10',
-                'published_at' => 'nullable|date',
+                'published_at' => 'nullable|string',
                 'publisher_name' => 'required|string|max:255',
                 'copyright_image' => 'required|file|image|mimes:jpg,png,jpeg',
                 'cover_image' => 'nullable|image|mimes:jpg,jpeg,png',

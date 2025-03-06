@@ -15,7 +15,7 @@ class BooksSeeder extends Seeder
             'lang' => 'English',
             'downloads_count' => 180,
             'views_count'  => 727,
-            'published_at' => now()->subYears(99), // 1925
+            'published_at' => '1925', // 1925
             'number_pages' => 218,
             'size' => 1.5,
             'edition_number' => '1st',
@@ -33,7 +33,7 @@ class BooksSeeder extends Seeder
             'lang' => 'English',
             'downloads_count' => 250,
             'views_count'  => 1000,
-            'published_at' => now()->subYears(75), // 1949
+            'published_at' => '1949', // 1949
             'number_pages' => 328,
             'size' => 1.2,
             'edition_number' => '1st',
@@ -51,7 +51,7 @@ class BooksSeeder extends Seeder
             'lang' => 'English',
             'downloads_count' => 300,
             'views_count'  => 1200,
-            'published_at' => now()->subYears(61), // 1960
+            'published_at' => '1960', // 1960
             'number_pages' => 281,
             'size' => 1.4,
             'edition_number' => '1st',
@@ -69,7 +69,7 @@ class BooksSeeder extends Seeder
             'lang' => 'English',
             'downloads_count' => 150,
             'views_count'  => 900,
-            'published_at' => now()->subYears(209), // 1813
+            'published_at' => '1813', // 1813
             'number_pages' => 279,
             'size' => 1.1,
             'edition_number' => '1st',
@@ -87,7 +87,7 @@ class BooksSeeder extends Seeder
             'lang' => 'English',
             'downloads_count' => 120,
             'views_count'  => 500,
-            'published_at' => now()->subYears(172), // 1851
+            'published_at' => '1851', // 1851
             'number_pages' => 585,
             'size' => 1.9,
             'edition_number' => '1st',
@@ -105,7 +105,7 @@ class BooksSeeder extends Seeder
             'lang' => 'English',
             'downloads_count' => 200,
             'views_count'  => 800,
-            'published_at' => now()->subYears(158), // 1869
+            'published_at' =>  '1869', // 1869
             'number_pages' => 1225,
             'size' => 2.5,
             'edition_number' => '1st',
@@ -123,7 +123,7 @@ class BooksSeeder extends Seeder
             'lang' => 'English',
             'downloads_count' => 400,
             'views_count'  => 1500,
-            'published_at' => now()->subYears(71), // 1951
+            'published_at' => '1951', // 1951
             'number_pages' => 277,
             'size' => 1.3,
             'edition_number' => '1st',

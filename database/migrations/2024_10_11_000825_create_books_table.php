@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('title');
             $table->text('description')->nullable();
-            $table->dateTime('published_at')->nullable();
+            $table->text('published_at')->nullable();
             $table->integer('number_pages')->nullable();
             $table->decimal('size', 5, 2)->nullable();
             $table->integer('views_count')->default(0);

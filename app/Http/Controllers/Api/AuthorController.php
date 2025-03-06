@@ -49,7 +49,7 @@ class AuthorController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:authors',
             'biography' => 'nullable|string',
-            'birthdate' => 'nullable|date',
+            'birthdate' => 'nullable|string',
             'image' => 'nullable|image',
         ]);
 
@@ -183,7 +183,7 @@ class AuthorController extends Controller
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
                 'biography' => 'nullable|string',
-                'birthdate' => 'nullable|date',
+                'birthdate' => 'nullable|string',
                 'image' => 'nullable|image',
             ]);
 
