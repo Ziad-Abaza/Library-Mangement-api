@@ -211,107 +211,31 @@ class BookController extends Controller
     |> Update book information and handle media files
     |--------------------------------
     */
-    // public function update(Request $request, Book $book)
-    // {
-    //     try {
-    //         // Authorize the update if not in the specified environment
-    //         // if (!$this->environment) {
-    //         //     $this->authorize('update', $book);
-    //         // }
-
-    //         // Validate the incoming request data
-    //         $validatedData = $request->validate([
-    //             'title' => 'required|string|max:255',
-    //             'description' => 'nullable|string',
-    //             'file' => 'nullable|file|mimes:pdf',
-    //             'edition_number' => 'nullable|string',
-    //             'lang' => 'required|string|max:10',
-    //             'published_at' => 'nullable|string',
-    //             'publisher_name' => 'required|string|max:255',
-    //             'copyright_image' => 'required|file|image|mimes:jpg,png,jpeg',
-    //             'cover_image' => 'nullable|image|mimes:jpg,jpeg,png',
-    //             'keywords' => 'nullable|array',
-    //             'keywords.*' => 'exists:keywords,id',
-    //             'category_id' => 'required|exists:categories,id',
-    //             'author_id' => 'required|exists:authors,id',
-    //             'book_series_id' => 'nullable|exists:book_series,id',
-    //         ]);
-
-    //         // Add user ID and set the book status to pending
-    //         $validatedData['user_id'] = auth()->id();
-    //         $user = auth()->user();
-    //         if ($user->hasRole('admin') || $user->hasRole('superAdmin')) {
-    //             $validatedData['status'] = 'approved';
-    //         } else {
-    //             $validatedData['status'] = 'pending';
-    //         }
-
-
-    //         // Update the book with validated data
-    //         $book->update($validatedData);
-
-    //         // Sync keywords if provided
-    //         if (isset($validatedData['keywords'])) {
-    //             $book->keywords()->sync($validatedData['keywords']);
-    //         }
-
-    //         // If a new file is uploaded, process it
-    //         if ($request->hasFile('file')) {
-    //             $file = $request->file('file');
-    //             $sizeInMB = $file->getSize() / (1024 * 1024); // Convert file size to MB
-    //             $validatedData['size'] = round($sizeInMB, 2);
-
-    //             // Parse the PDF to get the number of pages
-    //             $pdfParser = new Parser();
-    //             $pdf = $pdfParser->parseFile($file->getRealPath());
-    //             $numberOfPages = count($pdf->getPages());
-
-    //             // Update book with file details
-    //             $book->update([
-    //                 'number_pages' => $numberOfPages,
-    //                 'size' => $validatedData['size']
-    //             ]);
-    //         }
-
-    //         // Handle media uploads (cover, copyright image, etc.)
-    //         $this->handleMediaUploads($request, $book);
-
-    //         // Clear the cache for the book
-    //         $this->clearCache($book);
-
-    //         // Notify the user about the publication update
-    //         $book->user->notify(new PublicationNotification($book));
-
-    //         return response()->json(['message' => 'Book updated successfully'], Response::HTTP_OK); // Return success response
-    //     } catch (\Exception $e) {
-    //         // Handle errors and return an error message
-    //         return response()->json(['error' => 'Failed to update book: ' . $e->getMessage()], Response::HTTP_BAD_REQUEST);
-    //     }
-    // }
-
     public function update(Request $request, Book $book)
     {
         try {
-                $this->authorize('update', $book);
-            
 
+                $this->authorize('update', $book);
+
+            // Validate the incoming request data
             $validatedData = $request->validate([
-                'title' => 'sometimes|required|string|max:255',
+                'title' => 'required|string|max:255',
                 'description' => 'nullable|string',
                 'file' => 'nullable|file|mimes:pdf',
                 'edition_number' => 'nullable|string',
-                'lang' => 'nullable|string|max:10',
+                'lang' => 'required|string|max:10',
                 'published_at' => 'nullable|string',
-                'publisher_name' => 'nullable|string|max:255',
-                'copyright_image' => 'nullable|file|image|mimes:jpg,png,jpeg',
+                'publisher_name' => 'required|string|max:255',
+                'copyright_image' => 'required|file|image|mimes:jpg,png,jpeg',
                 'cover_image' => 'nullable|image|mimes:jpg,jpeg,png',
                 'keywords' => 'nullable|array',
                 'keywords.*' => 'exists:keywords,id',
-                'category_id' => 'nullable|exists:categories,id',
-                'author_id' => 'nullable|exists:authors,id',
+                'category_id' => 'required|exists:categories,id',
+                'author_id' => 'required|exists:authors,id',
                 'book_series_id' => 'nullable|exists:book_series,id',
             ]);
 
+            // Add user ID and set the book status to pending
             $validatedData['user_id'] = auth()->id();
             $user = auth()->user();
             if ($user->hasRole('admin') || $user->hasRole('superAdmin')) {
@@ -321,40 +245,114 @@ class BookController extends Controller
             }
 
 
+            // Update the book with validated data
             $book->update($validatedData);
 
-            if (array_key_exists('keywords', $validatedData)) {
-                $book->keywords()->sync($validatedData['keywords'] ?? []);
+            // Sync keywords if provided
+            if (isset($validatedData['keywords'])) {
+                $book->keywords()->sync($validatedData['keywords']);
             }
 
-            if ($request->hasFile('file') || $request->hasFile('cover_image') || $request->hasFile('copyright_image')) {
-                $this->handleMediaUploads($request, $book);
-            }
-
+            // If a new file is uploaded, process it
             if ($request->hasFile('file')) {
                 $file = $request->file('file');
-                $sizeInMB = $file->getSize() / (1024 * 1024);
+                $sizeInMB = $file->getSize() / (1024 * 1024); // Convert file size to MB
                 $validatedData['size'] = round($sizeInMB, 2);
 
+                // Parse the PDF to get the number of pages
                 $pdfParser = new Parser();
                 $pdf = $pdfParser->parseFile($file->getRealPath());
                 $numberOfPages = count($pdf->getPages());
 
+                // Update book with file details
                 $book->update([
                     'number_pages' => $numberOfPages,
                     'size' => $validatedData['size']
                 ]);
             }
 
+            // Handle media uploads (cover, copyright image, etc.)
+            $this->handleMediaUploads($request, $book);
+
+            // Clear the cache for the book
             $this->clearCache($book);
+
+            // Notify the user about the publication update
             $book->user->notify(new PublicationNotification($book));
 
-
-            return response()->json(['message' => 'تم تحديث الكتاب بنجاح'], Response::HTTP_OK);
+            return response()->json(['message' => 'Book updated successfully'], Response::HTTP_OK); // Return success response
         } catch (\Exception $e) {
-            return response()->json(['error' => 'فشل في تحديث الكتاب: ' . $e->getMessage()], Response::HTTP_BAD_REQUEST);
+            // Handle errors and return an error message
+            return response()->json(['error' => 'Failed to update book: ' . $e->getMessage()], Response::HTTP_BAD_REQUEST);
         }
     }
+
+    // public function update(Request $request, Book $book)
+    // {
+    //     try {
+    //             $this->authorize('update', $book);
+
+
+    //         $validatedData = $request->validate([
+    //             'title' => 'sometimes|required|string|max:255',
+    //             'description' => 'nullable|string',
+    //             'file' => 'nullable|file|mimes:pdf',
+    //             'edition_number' => 'nullable|string',
+    //             'lang' => 'nullable|string|max:10',
+    //             'published_at' => 'nullable|string',
+    //             'publisher_name' => 'nullable|string|max:255',
+    //             'copyright_image' => 'nullable|file|image|mimes:jpg,png,jpeg',
+    //             'cover_image' => 'nullable|image|mimes:jpg,jpeg,png',
+    //             'keywords' => 'nullable|array',
+    //             'keywords.*' => 'exists:keywords,id',
+    //             'category_id' => 'nullable|exists:categories,id',
+    //             'author_id' => 'nullable|exists:authors,id',
+    //             'book_series_id' => 'nullable|exists:book_series,id',
+    //         ]);
+
+    //         $validatedData['user_id'] = auth()->id();
+    //         $user = auth()->user();
+    //         if ($user->hasRole('admin') || $user->hasRole('superAdmin')) {
+    //             $validatedData['status'] = 'approved';
+    //         } else {
+    //             $validatedData['status'] = 'pending';
+    //         }
+
+
+    //         $book->update($validatedData);
+
+    //         if (array_key_exists('keywords', $validatedData)) {
+    //             $book->keywords()->sync($validatedData['keywords'] ?? []);
+    //         }
+
+    //         if ($request->hasFile('file') || $request->hasFile('cover_image') || $request->hasFile('copyright_image')) {
+    //             $this->handleMediaUploads($request, $book);
+    //         }
+
+    //         if ($request->hasFile('file')) {
+    //             $file = $request->file('file');
+    //             $sizeInMB = $file->getSize() / (1024 * 1024);
+    //             $validatedData['size'] = round($sizeInMB, 2);
+
+    //             $pdfParser = new Parser();
+    //             $pdf = $pdfParser->parseFile($file->getRealPath());
+    //             $numberOfPages = count($pdf->getPages());
+
+    //             $book->update([
+    //                 'number_pages' => $numberOfPages,
+    //                 'size' => $validatedData['size']
+    //             ]);
+    //         }
+
+    //         $this->clearCache($book);
+    //         $book->user->notify(new PublicationNotification($book));
+
+
+    //         return response()->json(['message' => 'تم تحديث الكتاب بنجاح'], Response::HTTP_OK);
+    //     } catch (\Exception $e) {
+    //         return response()->json(['error' => 'فشل في تحديث الكتاب: ' . $e->getMessage()], Response::HTTP_BAD_REQUEST);
+    //     }
+    // }
 
     /*
     |--------------------------------
