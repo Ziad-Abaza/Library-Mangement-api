@@ -215,9 +215,9 @@ class BookController extends Controller
     {
         try {
             // Authorize the update if not in the specified environment
-            if (!$this->environment) {
-                $this->authorize('update', $book);
-            }
+            // if (!$this->environment) {
+            //     $this->authorize('update', $book);
+            // }
 
             // Validate the incoming request data
             $validatedData = $request->validate([
