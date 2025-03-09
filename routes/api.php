@@ -62,7 +62,7 @@ Route::prefix('books')->group(function () {
     Route::get('/{book}', [BookController::class, 'show']);
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', [BookController::class, 'store']);
-        Route::put('/{book}', [BookController::class, 'update']);
+        Route::post('/{book}', [BookController::class, 'update']);
         Route::delete('/{book}', [BookController::class, 'destroy']);
         Route::get('/pending/approval', [BookController::class, 'pendingApproval']);
         Route::post('/{book}/approve', [BookController::class, 'approve']);
