@@ -47,7 +47,7 @@ class BookPolicy
         // User must have 'update-books' permission and either:
         // - Own the book, or
         // - Have a higher role (e.g., not a regular user).
-        return $user->hasPermission('update-books') && ($user->id === $book->user_id || !$user->hasRole('user'));
+        return $user->hasPermission('update-books') && ($user->id === $book->user_id );
     }
 
     /*
