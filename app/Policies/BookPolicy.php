@@ -44,10 +44,10 @@ class BookPolicy
     */
     public function update(User $user, Book $book): bool
     {
-        // User must have 'update-books' permission and either:
+        // User must :
         // - Own the book, or
         // - Have a higher role (e.g., not a regular user).
-        return $user->hasPermission('update-books') && ($user->id === $book->user_id );
+        return $user->id === $book->user_id || $user->roles()->where('name', '!=', 'user')->exists();
     }
 
     /*
