@@ -219,24 +219,24 @@ class BookController extends Controller
 
             // Validate the incoming request data
             $validatedData = $request->validate([
-                'title' => 'required|string|max:255',
+                'title' => 'sometimes|required|string|max:255',
                 'description' => 'nullable|string',
                 'file' => 'nullable|file|mimes:pdf',
                 'edition_number' => 'nullable|string',
-                'lang' => 'required|string|max:10',
+                'lang' => 'nullable|string|max:10',
                 'published_at' => 'nullable|string',
-                'publisher_name' => 'required|string|max:255',
-                'copyright_image' => 'required|file|image|mimes:jpg,png,jpeg',
+                'publisher_name' => 'nullable|string|max:255',
+                'copyright_image' => 'nullable|file|image|mimes:jpg,png,jpeg',
                 'cover_image' => 'nullable|image|mimes:jpg,jpeg,png',
                 'keywords' => 'nullable|array',
                 'keywords.*' => 'exists:keywords,id',
-                'category_id' => 'required|exists:categories,id',
-                'author_id' => 'required|exists:authors,id',
+                'category_id' => 'nullable|exists:categories,id',
+                'author_id' => 'nullable|exists:authors,id',
                 'book_series_id' => 'nullable|exists:book_series,id',
             ]);
 
-            // Add user ID and set the book status to pending
-            $validatedData['user_id'] = auth()->id();
+                // Add user ID and set the book status to pending
+                $validatedData['user_id'] = auth()->id();
             $user = auth()->user();
             if ($user->hasRole('admin') || $user->hasRole('superAdmin')) {
                 $validatedData['status'] = 'approved';
