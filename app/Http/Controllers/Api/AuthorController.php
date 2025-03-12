@@ -70,6 +70,10 @@ class AuthorController extends Controller
                     $author->addMedia(app()->environment('APP_URL') . '/assets/images/static/person.png')->toMediaCollection('authors');
                 }
 
+                Cache::forget('authors');
+                Cache::forget('authorRequests');
+                Cache::flush();
+
                 return response()->json(['message' => 'Author created successfully'], Response::HTTP_CREATED);
             }
 
@@ -201,6 +205,13 @@ class AuthorController extends Controller
                     $author->clearMediaCollection('authors'); // Remove the old image
                     $author->addMedia($request->file('image'))->toMediaCollection('authors');
                 }
+
+
+                // Clear cache after updating
+                Cache::forget('authors');
+                Cache::forget('author_' . $id);
+                Cache::flush();
+
 
                 return response()->json(['message' => 'Author updated successfully'], Response::HTTP_OK);
             }
