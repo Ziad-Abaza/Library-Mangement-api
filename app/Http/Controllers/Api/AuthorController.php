@@ -181,7 +181,7 @@ class AuthorController extends Controller
         try {
             // Validate the incoming request data
             $validated = $request->validate([
-                'name' => 'required|string|max:255',
+                'name' => 'sometimes|required|string|max:255',
                 'biography' => 'nullable|string',
                 'birthdate' => 'nullable|string',
                 'image' => 'nullable|image',

@@ -110,7 +110,7 @@ class RolesController extends Controller
             // Find role by ID and validate input fields
             $role = Role::findOrFail($id);
             $validated = $request->validate([
-                'name' => 'required|string|max:255|unique:roles,name,' . $id,
+                'name' => 'sometimes|required|string|max:255|unique:roles,name,' . $id,
                 'description' => 'nullable|string|max:255',
                 'role_level' => 'required|integer|min:1|max:5',
                 'permission_ids' => 'nullable|array',

@@ -142,7 +142,7 @@ class CategoryController extends Controller
 
             // Validate the request data
             $validated = $request->validate([
-                'name' => 'required|string|max:255', // Category name is required and should be a string
+                'name' => 'sometimes|required|string|max:255', // Category name is required and should be a string
                 'description' => 'nullable|string|max:255', // Description is optional but must be a string
                 'category_group_id' => 'required|exists:category_groups,id', // Ensure valid category group ID
             ]);

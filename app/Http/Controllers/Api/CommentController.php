@@ -84,7 +84,7 @@ class CommentController extends Controller
     {
         // Validate the request data
         $validated = $request->validate([
-            'content' => 'required|string|max:2000',
+            'content' => 'sometimes|required|string|max:2000',
             'rating' => 'required|integer|between:1,5',
         ]);
 
