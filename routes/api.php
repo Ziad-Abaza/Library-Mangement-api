@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
 
+
 /*
 |------------------------------------------------------------------
 | User Authentication Routes
@@ -214,3 +215,7 @@ Route::prefix('author-requests')->group(function () {
         Route::post('/{id}/handle-update', [AuthorController::class, 'handleUpdateRequest']);
     });
 });
+
+
+
+require __DIR__ . '/security.php';
