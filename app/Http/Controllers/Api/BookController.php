@@ -11,6 +11,7 @@ use App\Http\Resources\BookResource;
 use Illuminate\Support\Facades\Cache;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use App\Jobs\UploadBookFile;
 use Smalot\PdfParser\Parser;
 use App\Actions\PublishNewBookAction;
 use App\Actions\MarkBookAsPopularAction;
@@ -133,25 +134,7 @@ class BookController extends Controller
 
             // Check if the book has an uploaded file (PDF)
             if ($request->hasFile('file')) {
-                $file = $request->file('file');
-
-                // Calculate file size in MB and add to validated data
-                $sizeInMB = $file->getSize() / (1024 * 1024);
-                $validatedData['size'] = round($sizeInMB, 2);
-
-                // Parse the PDF file to count the number of pages
-                $pdfParser = new Parser();
-                $pdf = $pdfParser->parseFile($file->getRealPath());
-                $numberOfPages = count($pdf->getPages());
-
-                // Update the book with the number of pages and file size
-                $book->update([
-                    'number_pages' => $numberOfPages,
-                    'size' => $validatedData['size']
-                ]);
-
-                // Handle the media uploads (e.g., cover images, copyright images)
-                $this->handleMediaUploads($request, $book);
+                UploadBookFile::dispatch($book, $request->file('file'));
             }
 
             // Clear any relevant cache that might be affected by the new book
