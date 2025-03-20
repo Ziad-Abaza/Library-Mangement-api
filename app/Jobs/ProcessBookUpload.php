@@ -3,58 +3,46 @@
 namespace App\Jobs;
 
 use App\Models\Book;
+use Smalot\PdfParser\Parser;
+use App\Http\Controllers\Api\BookController;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
-use Smalot\PdfParser\Parser;
 
 class ProcessBookUpload implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     protected $book;
-    protected $filePath;
-    protected $request;
+    protected $file;
 
-    /**
-     * Create a new job instance.
-     */
-    public function __construct(Book $book, string $filePath, Request $request)
+    public function __construct(Book $book, $file)
     {
         $this->book = $book;
-        $this->filePath = $filePath;
-        $this->request = $request;
+        $this->file = $file;
     }
 
-    /**
-     * Execute the job.
-     */
     public function handle()
     {
-        try {
-            // احسب حجم الملف بالميجابايت
-            $sizeInMB = filesize($this->filePath) / (1024 * 1024);
+        // Calculate file size in MB
+        $sizeInMB = $this->file->getSize() / (1024 * 1024);
+        $this->book->size = round($sizeInMB, 2);
 
-            // استخراج عدد الصفحات من ملف PDF
-            $pdfParser = new Parser();
-            $pdf = $pdfParser->parseFile($this->filePath);
-            $numberOfPages = count($pdf->getPages());
+        // Parse the PDF to get number of pages
+        $pdfParser = new Parser();
+        $pdf = $pdfParser->parseFile($this->file->getRealPath());
+        $numberOfPages = count($pdf->getPages());
 
-            // تحديث بيانات الكتاب في قاعدة البيانات
-            $this->book->update([
-                'number_pages' => $numberOfPages,
-                'size' => round($sizeInMB, 2),
-            ]);
+        // Update the book with number of pages and size
+        $this->book->update([
+            'number_pages' => $numberOfPages,
+            'size' => $this->book->size,
+        ]);
 
-            // استدعاء مكتبة الميديا لمعالجة الصور والبيانات الأخرى
-            $this->book->handleMediaUploads($this->request, $this->book);
-        } catch (\Exception $e) {
-            Log::error('Error processing book upload: ' . $e->getMessage());
-        }
+        // Handle media uploads like cover image, copyright image
+        $bookController = new BookController();
+        $bookController->handleMediaUploads($this->book, $this->file);
     }
 }

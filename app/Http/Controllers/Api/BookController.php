@@ -12,10 +12,10 @@ use Illuminate\Support\Facades\Cache;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Smalot\PdfParser\Parser;
-use App\Jobs\ProcessBookUpload; // Import the missing class
 use App\Actions\PublishNewBookAction;
 use App\Actions\MarkBookAsPopularAction;
 use App\Notifications\PublicationNotification;
+use App\Jobs\ProcessBookUpload;
 
 class BookController extends Controller
 {
@@ -136,24 +136,10 @@ class BookController extends Controller
             if ($request->hasFile('file')) {
                 $file = $request->file('file');
 
-                // Calculate file size in MB and add to validated data
-                $sizeInMB = $file->getSize() / (1024 * 1024);
-                $validatedData['size'] = round($sizeInMB, 2);
-
-                // Parse the PDF file to count the number of pages
-                $pdfParser = new Parser();
-                $pdf = $pdfParser->parseFile($file->getRealPath());
-                $numberOfPages = count($pdf->getPages());
-
-                // Update the book with the number of pages and file size
-                $book->update([
-                    'number_pages' => $numberOfPages,
-                    'size' => $validatedData['size']
-                ]);
-
-                // Handle the media uploads (e.g., cover images, copyright images)
-                $this->handleMediaUploads($request, $book);
+                // إرسال الـ Job إلى الـ Queue لمعالجة رفع الكتاب في الخلفية
+                ProcessBookUpload::dispatch($book, $file);
             }
+
 
             // Clear any relevant cache that might be affected by the new book
             $this->clearCache();
@@ -257,9 +243,9 @@ class BookController extends Controller
             // If a new file is uploaded, process it
             if ($request->hasFile('file')) {
                 $file = $request->file('file');
-                $filePath = $file->getRealPath();
 
-                ProcessBookUpload::dispatch($book, $filePath, $request);
+                // إرسال الـ Job إلى الـ Queue لمعالجة رفع الكتاب في الخلفية
+                ProcessBookUpload::dispatch($book, $file);
             }
 
             // Handle media uploads (cover, copyright image, etc.)
