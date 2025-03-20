@@ -100,7 +100,7 @@ class BookController extends Controller
             $validatedData = $request->validate([
                 'title' => 'required|string|max:255',
                 'description' => 'nullable|string',
-                'file' => 'required|file|mimes:pdf', // File must be a PDF
+                'file' => 'required|file|mimes:pdf|max:614400', //600MB max size is = 600*1024*1024 = 629145600
                 'edition_number' => 'nullable|string',
                 'lang' => 'required|string|max:10',
                 'published_at' => 'nullable|string',
@@ -221,7 +221,7 @@ class BookController extends Controller
             $validatedData = $request->validate([
                 'title' => 'sometimes|required|string|max:255',
                 'description' => 'nullable|string',
-                'file' => 'nullable|file|mimes:pdf',
+                'file' => 'nullable|file|mimes:pdf|max:614400',
                 'edition_number' => 'nullable|string',
                 'lang' => 'nullable|string|max:10',
                 'published_at' => 'nullable|string',
