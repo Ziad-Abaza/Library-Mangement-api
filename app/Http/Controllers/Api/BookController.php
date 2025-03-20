@@ -15,7 +15,6 @@ use Smalot\PdfParser\Parser;
 use App\Actions\PublishNewBookAction;
 use App\Actions\MarkBookAsPopularAction;
 use App\Notifications\PublicationNotification;
-use Illuminate\Support\Facades\Log;
 
 class BookController extends Controller
 {
@@ -101,7 +100,7 @@ class BookController extends Controller
             $validatedData = $request->validate([
                 'title' => 'required|string|max:255',
                 'description' => 'nullable|string',
-                'file' => 'required|file|mimes:pdf|max:614400', //600MB max size is = 600*1024*1024 = 629145600
+                'file' => 'required|file|mimes:pdf|max:614400', //600MB max size
                 'edition_number' => 'nullable|string',
                 'lang' => 'required|string|max:10',
                 'published_at' => 'nullable|string',
@@ -163,23 +162,10 @@ class BookController extends Controller
 
             // Return a success message
             return response()->json(['message' => 'Book created successfully'], Response::HTTP_OK);
-        }  catch (\Exception $e) {
-    // تسجيل الخطأ في logs لتسهيل تتبعه
-    Log::error("Book creation failed", [
-        'message' => $e->getMessage(),
-        'file' => $e->getFile(),
-        'line' => $e->getLine(),
-        'stack_trace' => $e->getTraceAsString(),
-    ]);
-
-    return response()->json([
-        'error' => 'Failed to create book',
-        'details' => $e->getMessage(),  // إظهار تفاصيل الخطأ
-        'line' => $e->getLine(),
-        'file' => $e->getFile()
-    ], Response::HTTP_BAD_REQUEST);
-}
-
+        } catch (\Exception $e) {
+            // Return error response if book creation fails
+            return response()->json(['error' => 'Failed to create book: ' . $e->getMessage()], Response::HTTP_BAD_REQUEST);
+        }
     }
 
     /*
