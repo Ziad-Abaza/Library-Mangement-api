@@ -15,6 +15,7 @@ use Smalot\PdfParser\Parser;
 use App\Actions\PublishNewBookAction;
 use App\Actions\MarkBookAsPopularAction;
 use App\Notifications\PublicationNotification;
+use App\Jobs\ProcessBookUpload;
 
 class BookController extends Controller
 {
@@ -91,83 +92,54 @@ class BookController extends Controller
     public function store(Request $request)
     {
         try {
-            // Ensure the user has permission to create a book (unless in a special environment)
+            // التحقق من صلاحيات المستخدم
             if (!$this->environment) {
-                // $this->authorize('create', Book::class); // Authorization check
+                // $this->authorize('create', Book::class); // التحقق من الصلاحية
             }
 
-            // Validate incoming data to ensure the book details are correct
+            // التحقق من صحة البيانات
             $validatedData = $request->validate([
                 'title' => 'required|string|max:255',
                 'description' => 'nullable|string',
-                'file' => 'required|file|mimes:pdf', // File must be a PDF
+                'file' => 'required|file|mimes:pdf',
                 'edition_number' => 'nullable|string',
                 'lang' => 'required|string|max:10',
                 'published_at' => 'nullable|string',
                 'publisher_name' => 'required|string|max:255',
-                'copyright_image' => 'required|file|image|mimes:jpg,png,jpeg', // Copyright image must be a valid image file
+                'copyright_image' => 'required|file|image|mimes:jpg,png,jpeg',
                 'cover_image' => 'nullable|image|mimes:jpg,jpeg,png',
                 'keywords' => 'nullable|array',
-                'keywords.*' => 'exists:keywords,id', // Keywords must exist in the keywords table
-                'category_id' => 'required|exists:categories,id', // Category must exist in the categories table
-                'author_id' => 'required|exists:authors,id', // Author must exist in the authors table
+                'keywords.*' => 'exists:keywords,id',
+                'category_id' => 'required|exists:categories,id',
+                'author_id' => 'required|exists:authors,id',
                 'book_series_id' => 'nullable|exists:book_series,id',
             ]);
 
-            // Add the current user ID and set the status to 'pending' for new books
-            $validatedData['user_id']  = auth()->id();
+            // إنشاء سجل الكتاب
+            $validatedData['user_id'] = auth()->id();
             $user = auth()->user();
-            if ($user->hasRole('admin') || $user->hasRole('superAdmin')) {
-                $validatedData['status'] = 'approved';
-            } else {
-                $validatedData['status'] = 'pending';
-            }
+            $validatedData['status'] = $user->hasRole('admin') || $user->hasRole('superAdmin') ? 'approved' : 'pending';
 
-            // Create a new book entry in the database
             $book = Book::create($validatedData);
 
-            // Attach the provided keywords to the book, if any
+            // إرفاق الكلمات المفتاحية
             if (isset($validatedData['keywords'])) {
                 $book->keywords()->attach($validatedData['keywords']);
             }
 
-            // Check if the book has an uploaded file (PDF)
+            // تشغيل الوظيفة في الخلفية
             if ($request->hasFile('file')) {
-                $file = $request->file('file');
-
-                // Calculate file size in MB and add to validated data
-                $sizeInMB = $file->getSize() / (1024 * 1024);
-                $validatedData['size'] = round($sizeInMB, 2);
-
-                // Parse the PDF file to count the number of pages
-                $pdfParser = new Parser();
-                $pdf = $pdfParser->parseFile($file->getRealPath());
-                $numberOfPages = count($pdf->getPages());
-
-                // Update the book with the number of pages and file size
-                $book->update([
-                    'number_pages' => $numberOfPages,
-                    'size' => $validatedData['size']
-                ]);
-
-                // Handle the media uploads (e.g., cover images, copyright images)
-                $this->handleMediaUploads($request, $book);
+                ProcessBookUpload::dispatch($book, $request->file('file'), $request);
             }
 
-            // Clear any relevant cache that might be affected by the new book
-            $this->clearCache();
-
-            // Notify the book's user (creator) about the publication
+            // إشعار المستخدم بنجاح العملية
             $book->user->notify(new PublicationNotification($book));
 
-            // Return a success message
-            return response()->json(['message' => 'Book created successfully'], Response::HTTP_OK);
+            return response()->json(['message' => 'تم إنشاء الكتاب بنجاح. جاري معالجة الملفات...'], Response::HTTP_OK);
         } catch (\Exception $e) {
-            // Return error response if book creation fails
-            return response()->json(['error' => 'Failed to create book: ' . $e->getMessage()], Response::HTTP_BAD_REQUEST);
+            return response()->json(['error' => 'فشل في إنشاء الكتاب: ' . $e->getMessage()], Response::HTTP_BAD_REQUEST);
         }
     }
-
     /*
     |--------------------------------
     |> Retrieve a specific book by ID, cache and track views
