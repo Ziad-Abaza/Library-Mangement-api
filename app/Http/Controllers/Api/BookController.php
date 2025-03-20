@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Cache;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Smalot\PdfParser\Parser;
+use App\Jobs\ProcessBookUpload; // Import the missing class
 use App\Actions\PublishNewBookAction;
 use App\Actions\MarkBookAsPopularAction;
 use App\Notifications\PublicationNotification;
@@ -256,19 +257,9 @@ class BookController extends Controller
             // If a new file is uploaded, process it
             if ($request->hasFile('file')) {
                 $file = $request->file('file');
-                $sizeInMB = $file->getSize() / (1024 * 1024); // Convert file size to MB
-                $validatedData['size'] = round($sizeInMB, 2);
+                $filePath = $file->getRealPath();
 
-                // Parse the PDF to get the number of pages
-                $pdfParser = new Parser();
-                $pdf = $pdfParser->parseFile($file->getRealPath());
-                $numberOfPages = count($pdf->getPages());
-
-                // Update book with file details
-                $book->update([
-                    'number_pages' => $numberOfPages,
-                    'size' => $validatedData['size']
-                ]);
+                ProcessBookUpload::dispatch($book, $filePath, $request);
             }
 
             // Handle media uploads (cover, copyright image, etc.)
