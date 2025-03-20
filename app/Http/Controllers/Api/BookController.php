@@ -134,8 +134,10 @@ class BookController extends Controller
 
             // Check if the book has an uploaded file (PDF)
             if ($request->hasFile('file')) {
-                UploadBookFile::dispatch($book, $request->file('file'));
+                $filePath = $request->file('file')->store('books');
+                UploadBookFile::dispatch($book, $filePath);
             }
+
 
             // Clear any relevant cache that might be affected by the new book
             $this->clearCache();
