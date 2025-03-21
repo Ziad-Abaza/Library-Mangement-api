@@ -15,7 +15,7 @@ use Smalot\PdfParser\Parser;
 use App\Actions\PublishNewBookAction;
 use App\Actions\MarkBookAsPopularAction;
 use App\Notifications\PublicationNotification;
-use App\Jobs\ProcessBookUpload;
+use App\Jobs\ProcessBookUpload; // Import the missing class
 
 class BookController extends Controller
 {
@@ -92,49 +92,70 @@ class BookController extends Controller
     public function store(Request $request)
     {
         try {
+
+            // Validate incoming data to ensure the book details are correct
             $validatedData = $request->validate([
                 'title' => 'required|string|max:255',
                 'description' => 'nullable|string',
-                'file' => 'required|file|mimes:pdf|max:614400',
+                'file' => 'required|file|mimes:pdf|max:614400', //600MB max size
                 'edition_number' => 'nullable|string',
                 'lang' => 'required|string|max:10',
                 'published_at' => 'nullable|string',
                 'publisher_name' => 'required|string|max:255',
-                'copyright_image' => 'required|file|image|mimes:jpg,png,jpeg',
+                'copyright_image' => 'required|file|image|mimes:jpg,png,jpeg', // Copyright image must be a valid image file
                 'cover_image' => 'nullable|image|mimes:jpg,jpeg,png',
                 'keywords' => 'nullable|array',
-                'keywords.*' => 'exists:keywords,id',
-                'category_id' => 'required|exists:categories,id',
-                'author_id' => 'required|exists:authors,id',
+                'keywords.*' => 'exists:keywords,id', // Keywords must exist in the keywords table
+                'category_id' => 'required|exists:categories,id', // Category must exist in the categories table
+                'author_id' => 'required|exists:authors,id', // Author must exist in the authors table
                 'book_series_id' => 'nullable|exists:book_series,id',
             ]);
 
+            // Add the current user ID and set the status to 'pending' for new books
             $validatedData['user_id']  = auth()->id();
-            $validatedData['status'] = auth()->user()->hasRole('admin') ? 'approved' : 'pending';
+            $user = auth()->user();
+            if ($user->hasRole('admin') || $user->hasRole('superAdmin')) {
+                $validatedData['status'] = 'approved';
+            } else {
+                $validatedData['status'] = 'pending';
+            }
 
+            // Create a new book entry in the database
             $book = Book::create($validatedData);
 
+            // Attach the provided keywords to the book, if any
             if (isset($validatedData['keywords'])) {
                 $book->keywords()->attach($validatedData['keywords']);
             }
 
-            $filePath = $request->file('file')->store('uploads/books');
-            $coverImagePath = $request->file('cover_image') ? $request->file('cover_image')->store('uploads/books/covers') : null;
-            $copyrightImagePath = $request->file('copyright_image')->store('uploads/books/copyrights');
+            // Check if the book has an uploaded file (PDF)
+            if ($request->hasFile('file')) {
+                $filePath = $request->file('file')->store('uploads/books');
+                $coverImagePath = $request->file('cover_image') ? $request->file('cover_image')->store('uploads/books/covers') : null;
+                $copyrightImagePath = $request->file('copyright_image')->store('uploads/books/copyrights');
 
-            ProcessBookUpload::dispatch(
-                $book,
-                $filePath,
-                $coverImagePath,
-                $copyrightImagePath
-            );
+                // رفع الملفات في الخلفية
+                ProcessBookUpload::dispatch(
+                    $book,
+                    $filePath,
+                    $coverImagePath,
+                    $copyrightImagePath
+                );
+            }
 
-            return response()->json(['message' => 'Book is being processed in the background'], Response::HTTP_ACCEPTED);
+            // Clear any relevant cache that might be affected by the new book
+            $this->clearCache();
+
+            // Notify the book's user (creator) about the publication
+            $book->user->notify(new PublicationNotification($book));
+
+            // Return a success message
+            return response()->json(['message' => 'Book created successfully'], Response::HTTP_OK);
         } catch (\Exception $e) {
+            // Return error response if book creation fails
             return response()->json(['error' => 'Failed to create book: ' . $e->getMessage()], Response::HTTP_BAD_REQUEST);
         }
     }
-
 
     /*
     |--------------------------------
