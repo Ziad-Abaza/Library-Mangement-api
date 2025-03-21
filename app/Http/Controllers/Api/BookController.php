@@ -118,11 +118,17 @@ class BookController extends Controller
                 $book->keywords()->attach($validatedData['keywords']);
             }
 
+            // حفظ الملفات مؤقتًا وإرسال المسارات فقط إلى الـ Job
+            $filePath = $request->file('file')->store('uploads/books');
+            $coverImagePath = $request->file('cover_image') ? $request->file('cover_image')->store('uploads/books/covers') : null;
+            $copyrightImagePath = $request->file('copyright_image')->store('uploads/books/copyrights');
+
+            // رفع الملفات في الخلفية
             ProcessBookUpload::dispatch(
                 $book,
-                $request->file('file'),
-                $request->file('cover_image'),
-                $request->file('copyright_image')
+                $filePath,
+                $coverImagePath,
+                $copyrightImagePath
             );
 
             return response()->json(['message' => 'Book is being processed in the background'], Response::HTTP_ACCEPTED);
@@ -130,6 +136,7 @@ class BookController extends Controller
             return response()->json(['error' => 'Failed to create book: ' . $e->getMessage()], Response::HTTP_BAD_REQUEST);
         }
     }
+
 
     /*
     |--------------------------------

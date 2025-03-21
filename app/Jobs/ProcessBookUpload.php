@@ -16,19 +16,19 @@ class ProcessBookUpload implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     protected $book;
-    protected $file;
-    protected $coverImage;
-    protected $copyrightImage;
+    protected $filePath;
+    protected $coverImagePath;
+    protected $copyrightImagePath;
 
     /**
      * Create a new job instance.
      */
-    public function __construct(Book $book, $file, $coverImage = null, $copyrightImage)
+    public function __construct(Book $book, $filePath, $coverImagePath = null, $copyrightImagePath)
     {
         $this->book = $book;
-        $this->file = $file;
-        $this->coverImage = $coverImage;
-        $this->copyrightImage = $copyrightImage;
+        $this->filePath = $filePath;
+        $this->coverImagePath = $coverImagePath;
+        $this->copyrightImagePath = $copyrightImagePath;
     }
 
     /**
@@ -36,10 +36,13 @@ class ProcessBookUpload implements ShouldQueue
      */
     public function handle()
     {
-        if ($this->file) {
-            $sizeInMB = $this->file->getSize() / (1024 * 1024);
+        // استرجاع ملف الـ PDF
+        if ($this->filePath) {
+            $file = storage_path('app/' . $this->filePath);
+            $sizeInMB = filesize($file) / (1024 * 1024);
+
             $pdfParser = new Parser();
-            $pdf = $pdfParser->parseFile($this->file->getRealPath());
+            $pdf = $pdfParser->parseFile($file);
             $numberOfPages = count($pdf->getPages());
 
             $this->book->update([
@@ -47,15 +50,19 @@ class ProcessBookUpload implements ShouldQueue
                 'size' => round($sizeInMB, 2),
             ]);
 
-            $this->book->addMedia($this->file)->toMediaCollection('file');
+            $this->book->addMedia($file)->toMediaCollection('file');
         }
 
-        if ($this->coverImage) {
-            $this->book->addMedia($this->coverImage)->toMediaCollection('cover_image');
+        // استرجاع صورة الغلاف
+        if ($this->coverImagePath) {
+            $coverImage = storage_path('app/' . $this->coverImagePath);
+            $this->book->addMedia($coverImage)->toMediaCollection('cover_image');
         }
 
-        if ($this->copyrightImage) {
-            $this->book->addMedia($this->copyrightImage)->toMediaCollection('copyright_image');
+        // استرجاع صورة حقوق النشر
+        if ($this->copyrightImagePath) {
+            $copyrightImage = storage_path('app/' . $this->copyrightImagePath);
+            $this->book->addMedia($copyrightImage)->toMediaCollection('copyright_image');
         }
     }
 }
