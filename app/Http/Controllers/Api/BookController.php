@@ -118,12 +118,10 @@ class BookController extends Controller
                 $book->keywords()->attach($validatedData['keywords']);
             }
 
-            // حفظ الملفات مؤقتًا وإرسال المسارات فقط إلى الـ Job
             $filePath = $request->file('file')->store('uploads/books');
             $coverImagePath = $request->file('cover_image') ? $request->file('cover_image')->store('uploads/books/covers') : null;
             $copyrightImagePath = $request->file('copyright_image')->store('uploads/books/copyrights');
 
-            // رفع الملفات في الخلفية
             ProcessBookUpload::dispatch(
                 $book,
                 $filePath,
