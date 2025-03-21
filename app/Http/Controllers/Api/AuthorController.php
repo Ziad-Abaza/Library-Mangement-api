@@ -341,7 +341,7 @@ class AuthorController extends Controller
                     'id' => $author->id,
                     'name' => $author->name,
                     'biography' => $author->biography,
-                    'birthdate' => $author->birthdate,
+                    'birthdate ' => substr($author->birthdate, 0, 4),
                     'user_id' => $author->user_id,
                     'books_count' => $author->books->count(), // Calculate books count
                     'request_image' => $author->getFirstMediaUrl('author_requests'),
