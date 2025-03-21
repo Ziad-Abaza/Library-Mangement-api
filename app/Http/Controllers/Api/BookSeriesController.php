@@ -11,11 +11,9 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
-use Illuminate\Support\Facades\Cache;
 
 class BookSeriesController extends Controller
 {
-
     /*
     |------------------------------------------------------
     | List all book series with optional search
@@ -24,22 +22,16 @@ class BookSeriesController extends Controller
     public function index(Request $request)
     {
         try {
-            // Generate a cache key based on the full request URL
-            $cacheKey = 'book_series_index_' . md5($request->fullUrl());
+            $query = BookSeries::query();
 
-            // Retrieve the list of book series from cache or database
-            $bookSeries = Cache::remember($cacheKey, 1200, function () use ($request) {
-                $query = BookSeries::query();
+            // Apply search filter if provided in the request
+            if ($request->filled('search')) {
+                $query->where('title', 'like', '%' . $request->search . '%');
+            }
 
-                // Apply search filter if provided in the request
-                if ($request->filled('search')) {
-                    $query->where('title', 'like', '%' . $request->search . '%');
-                }
+            $bookSeries = $query->with('books')->get(); // Return the series with associated books
 
-                return $query->with('books')->get();  // Return the series with associated books
-            });
-
-            return BookSeriesResource::collection($bookSeries);  // Return the collection of book series wrapped in a resource
+            return BookSeriesResource::collection($bookSeries);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Unable to retrieve book series.'], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
@@ -53,15 +45,8 @@ class BookSeriesController extends Controller
     public function show($id)
     {
         try {
-            // Generate a cache key for the specific book series
-            $cacheKey = 'book_series_show_' . md5($id);
-
-            // Retrieve the book series from cache or database
-            $bookSeries = Cache::remember($cacheKey, 1200, function () use ($id) {
-                return BookSeries::with('books')->findOrFail($id);  // Find the series by ID, or fail if not found
-            });
-
-            return new BookSeriesResource($bookSeries);  // Return the book series wrapped in a resource
+            $bookSeries = BookSeries::with('books')->findOrFail($id);
+            return new BookSeriesResource($bookSeries);
         } catch (ModelNotFoundException $e) {
             return response()->json(['error' => 'Book series not found.'], Response::HTTP_NOT_FOUND);
         } catch (\Exception $e) {
@@ -77,26 +62,20 @@ class BookSeriesController extends Controller
     public function store(Request $request)
     {
         try {
-            // Validate incoming request data
             $validated = $request->validate([
                 'title' => 'required|string|max:255',
                 'description' => 'nullable|string',
                 'image' => 'required|image',
             ]);
 
-            // Set user ID based on environment or authenticated user
-            $userId = Auth::id();
-            $validated['user_id'] = $userId;
-
-            // Create the new book series in the database
+            $validated['user_id'] = Auth::id();
             $bookSeries = BookSeries::create($validated);
 
-            // If an image is uploaded, associate it with the book series
             if ($request->hasFile('image')) {
                 $bookSeries->addMediaFromRequest('image')->toMediaCollection('book_series');
             }
 
-            return new BookSeriesResource($bookSeries, Response::HTTP_CREATED);  // Return the created book series wrapped in a resource
+            return new BookSeriesResource($bookSeries, Response::HTTP_CREATED);
         } catch (ValidationException $e) {
             return response()->json(['error' => $e->validator->errors()], Response::HTTP_UNPROCESSABLE_ENTITY);
         } catch (\Exception $e) {
@@ -112,32 +91,23 @@ class BookSeriesController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            // Find the book series by ID or fail
             $bookSeries = BookSeries::findOrFail($id);
-
-            // Authorize the update action if not in development environment
             $this->authorize('update', $bookSeries);
-            
-            // Validate incoming request data
+
             $validated = $request->validate([
                 'title' => 'sometimes|required|string|max:255',
                 'description' => 'sometimes|nullable|string',
                 'image' => 'sometimes|nullable|image',
             ]);
 
-            // Update the book series with validated data
             $bookSeries->update($validated);
 
-            // If an image is uploaded, replace the old image
             if ($request->hasFile('image')) {
                 $bookSeries->clearMediaCollection('book_series');
                 $bookSeries->addMediaFromRequest('image')->toMediaCollection('book_series');
             }
 
-            // Clear the cache for the updated book series
-            Cache::forget('book_series_show_' . md5($id));
-
-            return new BookSeriesResource($bookSeries);  // Return the updated book series wrapped in a resource
+            return new BookSeriesResource($bookSeries);
         } catch (ModelNotFoundException $e) {
             return response()->json(['error' => 'Book series not found.'], Response::HTTP_NOT_FOUND);
         } catch (AccessDeniedHttpException $e) {
@@ -157,16 +127,9 @@ class BookSeriesController extends Controller
     public function destroy($id)
     {
         try {
-            // Find the book series by ID or fail
             $bookSeries = BookSeries::findOrFail($id);
-
-            // Authorize the delete action if not in development environment
             $this->authorize('delete', $bookSeries);
-            // Delete the book series from the database
             $bookSeries->delete();
-
-            // Clear the cache for the deleted book series
-            Cache::forget('book_series_show_' . md5($id));
 
             return response()->json(['message' => 'Book series deleted successfully'], Response::HTTP_NO_CONTENT);
         } catch (ModelNotFoundException $e) {
