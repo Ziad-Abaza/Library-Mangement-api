@@ -116,7 +116,7 @@ Route::prefix('roles')->group(function () {
         Route::get('/', [RolesController::class, 'index']);
         Route::post('/', [RolesController::class, 'store']);
         Route::get('/{role}', [RolesController::class, 'show']);
-        Route::put('/{role}', [RolesController::class, 'update']);
+        Route::post('/{role}', [RolesController::class, 'update']);
         Route::delete('/{role}', [RolesController::class, 'destroy']);
     });
 });

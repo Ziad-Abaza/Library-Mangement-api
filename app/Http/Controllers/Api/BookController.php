@@ -111,7 +111,7 @@ class BookController extends Controller
                 'keywords.*' => 'exists:keywords,id', // Keywords must exist in the keywords table
                 'category_id' => 'required|exists:categories,id', // Category must exist in the categories table
                 'author_id' => 'required|exists:authors,id', // Author must exist in the authors table
-                'book_series_id' => 'nullable|integer|exists:book_series,id',
+                'book_series_id' => 'nullable|exists:book_series,id',
             ]);
 
             // Add the current user ID and set the status to 'pending' for new books
