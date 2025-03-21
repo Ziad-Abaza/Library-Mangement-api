@@ -94,7 +94,7 @@ Route::prefix('books/{bookId}/comments')->group(function () {
     Route::get('/', [CommentController::class, 'index']);
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', [CommentController::class, 'store']);
-        Route::put('/{commentId}', [CommentController::class, 'update']);
+        Route::post('/{commentId}', [CommentController::class, 'update']);
         Route::delete('/{commentId}', [CommentController::class, 'destroy']);
     });
 });
@@ -152,7 +152,7 @@ Route::prefix('categories')->group(function () {
     Route::get('/{category}', [CategoryController::class, 'show']);
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', [CategoryController::class, 'store']);
-        Route::put('/{category}', [CategoryController::class, 'update']);
+        Route::post('/{category}', [CategoryController::class, 'update']);
         Route::delete('/{category}', [CategoryController::class, 'destroy']);
     });
 });
@@ -167,7 +167,7 @@ Route::prefix('category-groups')->group(function () {
     Route::get('/{id}', [CategoryController::class, 'showCategoryGroup']);
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', [CategoryController::class, 'storeCategoryGroup']);
-        Route::put('/{id}', [CategoryController::class, 'updateCategoryGroup']);
+        Route::post('/{id}', [CategoryController::class, 'updateCategoryGroup']);
         Route::delete('/{id}', [CategoryController::class, 'destroyCategoryGroup']);
     });
 });
