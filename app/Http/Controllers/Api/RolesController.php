@@ -17,16 +17,6 @@ class RolesController extends Controller
     | Constructor to handle authorization based on environment
     |------------------------------------------------------
     */
-    public function __construct()
-    {
-        $environment = env('DEV_ENVIRONMENT', false);
-        if ($environment) {
-            Auth::loginUsingId(1); // Auto-login for development
-        } else {
-            // Apply resource authorization for production
-            $this->authorizeResource(Role::class, 'role');
-        }
-    }
 
     /*
     |------------------------------------------------------

@@ -15,7 +15,7 @@ class RolePolicy
     public function viewAny(User $user)
     {
         // Check if the user has permission to view roles
-        return $user->hasPermission('view-roles'); 
+        return $user->hasPermission('view-roles');
     }
 
     /*
