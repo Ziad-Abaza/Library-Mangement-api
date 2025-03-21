@@ -14,28 +14,13 @@ class RolesController extends Controller
 {
     /*
     |------------------------------------------------------
-    | Constructor to handle authorization based on environment
-    |------------------------------------------------------
-    */
-    public function __construct()
-    {
-        $environment = env('DEV_ENVIRONMENT', false);
-        if ($environment) {
-            Auth::loginUsingId(1); // Auto-login for development
-        } else {
-            // Apply resource authorization for production
-            $this->authorizeResource(Role::class, 'role');
-        }
-    }
-
-    /*
-    |------------------------------------------------------
     | Index method to list roles
     |------------------------------------------------------
     */
     public function index()
     {
         try {
+            $this->authorize('viewAny', Role::class);
             $query = request()->input('search');
             $roles = Role::when($query, function ($queryBuilder) use ($query) {
                 return $queryBuilder->where('name', 'like', '%' . $query . '%')
@@ -57,6 +42,7 @@ class RolesController extends Controller
     public function store(Request $request)
     {
         try {
+            $this->authorize('create', Role::class);
             // Validate input fields for role creation
             $validated = $request->validate([
                 'name' => 'required|string|max:255|unique:roles,name',
@@ -89,6 +75,8 @@ class RolesController extends Controller
         try {
             // Fetch role with permissions by ID
             $role = Role::with('permissions')->findOrFail($id);
+            $this->authorize('view', $role);
+
             return new RoleResource($role);
         } catch (ModelNotFoundException $e) {
             // Return error if role not found
@@ -109,6 +97,8 @@ class RolesController extends Controller
         try {
             // Find role by ID and validate input fields
             $role = Role::findOrFail($id);
+            $this->authorize('update', $role);
+
             $validated = $request->validate([
                 'name' => 'sometimes|required|string|max:255|unique:roles,name,' . $id,
                 'description' => 'nullable|string|max:255',
@@ -143,6 +133,8 @@ class RolesController extends Controller
         try {
             // Find and delete role by ID
             $role = Role::findOrFail($id);
+            $this->authorize('delete', $role);
+            
             $role->permissions()->detach(); // Detach associated permissions
             $role->delete(); // Delete role
 
