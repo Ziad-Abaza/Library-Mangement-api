@@ -318,7 +318,11 @@ class BookController extends Controller
 
         // Notify the user about the publication status update
         $book->user->notify(new PublicationNotification($book));
-
+        // Clear any relevant cache that might be affected by the new book
+        $this->clearCache();
+        // Clear the book cache
+        $this->clearCache($book);
+        
         return response()->json(['message' => 'Book status updated successfully.'], Response::HTTP_OK); // Return success response
     }
 

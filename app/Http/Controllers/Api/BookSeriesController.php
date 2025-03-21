@@ -15,20 +15,6 @@ use Illuminate\Support\Facades\Cache;
 
 class BookSeriesController extends Controller
 {
-    protected $environment;
-
-    /*
-    |------------------------------------------------------
-    | Constructor to handle authorization based on environment
-    |------------------------------------------------------
-    */
-    public function __construct()
-    {
-        $this->environment = env('DEV_ENVIRONMENT', false);
-        if ($this->environment) {
-            Auth::loginUsingId(1); // Auto-login for development
-        }
-    }
 
     /*
     |------------------------------------------------------
@@ -99,7 +85,7 @@ class BookSeriesController extends Controller
             ]);
 
             // Set user ID based on environment or authenticated user
-            $userId = $this->environment ? 1 : Auth::id();
+            $userId = Auth::id();
             $validated['user_id'] = $userId;
 
             // Create the new book series in the database
@@ -130,10 +116,8 @@ class BookSeriesController extends Controller
             $bookSeries = BookSeries::findOrFail($id);
 
             // Authorize the update action if not in development environment
-            if(!$this->environment){
-                $this->authorize('update', $bookSeries);
-            }
-
+            $this->authorize('update', $bookSeries);
+            
             // Validate incoming request data
             $validated = $request->validate([
                 'title' => 'sometimes|required|string|max:255',
@@ -177,10 +161,7 @@ class BookSeriesController extends Controller
             $bookSeries = BookSeries::findOrFail($id);
 
             // Authorize the delete action if not in development environment
-            if(!$this->environment){
-                $this->authorize('delete', $bookSeries);
-            }
-
+            $this->authorize('delete', $bookSeries);
             // Delete the book series from the database
             $bookSeries->delete();
 
