@@ -15,7 +15,7 @@ class AuthorResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'biography' => $this->biography,
-            'birthdate' => $this->birthdate,
+            'birthdate' => substr($this->birthdate, 0, 4),
             'user_id' => $this->user_id,
             'books' => BookResource::collection($this->whenLoaded('books')),
             'books_count' => $this->whenLoaded('books', function () {

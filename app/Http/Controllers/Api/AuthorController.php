@@ -365,9 +365,7 @@ class AuthorController extends Controller
     public function show($id)
     {
         try {
-            $author = Cache::remember("author_{$id}", 60, function () use ($id) {
-                return Author::findOrFail($id); // Retrieve author by ID or fail
-            });
+            $author = Author::findOrFail($id); // Retrieve author by ID or fail
             return new AuthorResource($author); // Return author data as a resource
         } catch (\Exception $e) {
             return response()->json(['error' => 'Author not found', 'details' => $e->getMessage()], Response::HTTP_NOT_FOUND);
