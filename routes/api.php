@@ -80,7 +80,7 @@ Route::prefix('book-series')->group(function () {
     Route::get('/{series}', [BookSeriesController::class, 'show']);
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', [BookSeriesController::class, 'store']);
-        Route::put('/{series}', [BookSeriesController::class, 'update']);
+        Route::post('/{series}', [BookSeriesController::class, 'update']);
         Route::delete('/{series}', [BookSeriesController::class, 'destroy']);
     });
 });
