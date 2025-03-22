@@ -202,11 +202,11 @@ class CategoryController extends Controller
     | Method to create a new category group.
     |------------------------------------------------------
     */
-    public function storeCategoryGroup(Request $request)
+    public function storeCategoryGroup(Request $request, CategoryGroup $categoryGroup)
     {
         try {
             // Check if environment is not development, then authorize the user.
-            $this->authorize('create', CategoryGroup::class);
+            $this->authorize('create', $categoryGroup);
 
             // Validate the incoming request data.
             $validated = $request->validate([
@@ -229,14 +229,14 @@ class CategoryController extends Controller
     | Method to update an existing category group.
     |------------------------------------------------------
     */
-    public function updateCategoryGroup(Request $request, $id)
+    public function updateCategoryGroup(Request $request,$id, CategoryGroup $categoryGroup)
     {
         try {
             // Fetch the category group with the given ID.
             $categoryGroup = CategoryGroup::findOrFail($id);
 
             // Check if environment is not development, then authorize the user.
-            $this->authorize( 'update', CategoryGroup::class);
+            $this->authorize( 'update', $categoryGroup);
 
             // Validate the incoming request data.
             $validated = $request->validate([
@@ -259,14 +259,14 @@ class CategoryController extends Controller
     | Method to delete an existing category group.
     |------------------------------------------------------
     */
-    public function destroyCategoryGroup($id)
+    public function destroyCategoryGroup($id, CategoryGroup $categoryGroup)
     {
         try {
             // Fetch the category group with the given ID.
             $categoryGroup = CategoryGroup::findOrFail($id);
 
             // Check if environment is not development, then authorize the user.
-            $this->authorize('delete', CategoryGroup::class);
+            $this->authorize('delete', $categoryGroup);
 
             // Delete the category group.
             $categoryGroup->delete();
