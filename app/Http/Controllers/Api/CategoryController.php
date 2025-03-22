@@ -202,11 +202,9 @@ class CategoryController extends Controller
     | Method to create a new category group.
     |------------------------------------------------------
     */
-    public function storeCategoryGroup(Request $request, CategoryGroup $categoryGroup)
+    public function storeCategoryGroup(Request $request)
     {
         try {
-            // Check if environment is not development, then authorize the user.
-            $this->authorize('create', $categoryGroup);
 
             // Validate the incoming request data.
             $validated = $request->validate([
@@ -215,7 +213,9 @@ class CategoryController extends Controller
 
             // Create a new category group with validated data.
             $categoryGroup = CategoryGroup::create($validated);
-
+            // Check if environment is not development, then authorize the user.
+            $this->authorize('create', $categoryGroup);
+            
             // Return the created category group as a resource.
             return new CategoryGroupResource($categoryGroup);
         } catch (Exception $e) {
@@ -229,7 +229,7 @@ class CategoryController extends Controller
     | Method to update an existing category group.
     |------------------------------------------------------
     */
-    public function updateCategoryGroup(Request $request,$id, CategoryGroup $categoryGroup)
+    public function updateCategoryGroup(Request $request,$id)
     {
         try {
             // Fetch the category group with the given ID.
@@ -259,7 +259,7 @@ class CategoryController extends Controller
     | Method to delete an existing category group.
     |------------------------------------------------------
     */
-    public function destroyCategoryGroup($id, CategoryGroup $categoryGroup)
+    public function destroyCategoryGroup($id)
     {
         try {
             // Fetch the category group with the given ID.
