@@ -223,7 +223,7 @@ class BookController extends Controller
                 'copyright_image' => 'nullable|file|image|mimes:jpg,png,jpeg',
                 'cover_image' => 'nullable|image|mimes:jpg,jpeg,png',
                 'keywords' => 'nullable|array',
-                'keywords.*' => 'exists:keywords,id',
+                'keywords.*' => 'string',
                 'category_id' => 'nullable|exists:categories,id',
                 'author_id' => 'nullable|exists:authors,id',
                 'book_series_id' => 'nullable|exists:book_series,id',
@@ -243,8 +243,13 @@ class BookController extends Controller
             $book->update($validatedData);
 
             // Sync keywords if provided
-            if (isset($validatedData['keywords'])) {
-                $book->keywords()->sync($validatedData['keywords']);
+            if (!empty($validatedData['keywords'])) {
+                $keywordIds = [];
+                foreach ($validatedData['keywords'] as $keywordName) {
+                    $keyword = Keyword::firstOrCreate(['name' => trim($keywordName)]);
+                    $keywordIds[] = $keyword->id;
+                }
+                $book->keywords()->sync($keywordIds); 
             }
 
             // Check if the book has an uploaded file (PDF)
