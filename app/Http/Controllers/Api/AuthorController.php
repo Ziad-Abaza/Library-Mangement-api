@@ -292,10 +292,10 @@ class AuthorController extends Controller
     }
 
     /*
-|******************************************************************************************************
-| > Handles Functions Resources For Authors
-|******************************************************************************************************
-*/
+    |******************************************************************************************************
+    | > Handles Functions Resources For Authors
+    |******************************************************************************************************
+    */
 
     /*
     |------------------------------------------------------
@@ -396,6 +396,7 @@ class AuthorController extends Controller
 
                 // Add average rating to the book object
                 $book->average_rating = $formattedRating;
+                $book->cover_image = $book->getFirstMediaUrl('cover_image');
 
                 return $book;
             });
