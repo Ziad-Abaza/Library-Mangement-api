@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Jobs\DownloadBookPdf;
 use App\Models\Book;
+use App\Models\Keyword;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -105,7 +106,7 @@ class BookController extends Controller
                 'copyright_image' => 'required|file|image|mimes:jpg,png,jpeg', // Copyright image must be a valid image file
                 'cover_image' => 'nullable|image|mimes:jpg,jpeg,png',
                 'keywords' => 'nullable|array',
-                'keywords.*' => 'exists:keywords,id', // Keywords must exist in the keywords table
+                'keywords.*' => 'string', // Keywords must exist in the keywords table
                 'category_id' => 'required|exists:categories,id', // Category must exist in the categories table
                 'author_id' => 'required|exists:authors,id', // Author must exist in the authors table
                 'book_series_id' => 'nullable|exists:book_series,id',
@@ -124,8 +125,13 @@ class BookController extends Controller
             $book = Book::create($validatedData);
 
             // Attach the provided keywords to the book, if any
-            if (isset($validatedData['keywords'])) {
-                $book->keywords()->attach($validatedData['keywords']);
+            if (!empty($validatedData['keywords'])) {
+                $keywordIds = [];
+                foreach ($validatedData['keywords'] as $keywordName) {
+                    $keyword = Keyword::firstOrCreate(['name' => trim($keywordName)]);
+                    $keywordIds[] = $keyword->id;
+                }
+                $book->keywords()->attach($keywordIds);
             }
 
             // Check if the book has an uploaded file (PDF)
@@ -134,7 +140,6 @@ class BookController extends Controller
                 $coverImagePath = $request->file('cover_image') ? $request->file('cover_image')->store('uploads/books/covers') : null;
                 $copyrightImagePath = $request->file('copyright_image')->store('uploads/books/copyrights');
 
-                // رفع الملفات في الخلفية
                 ProcessBookUpload::dispatch(
                     $book,
                     $filePath,
@@ -242,26 +247,19 @@ class BookController extends Controller
                 $book->keywords()->sync($validatedData['keywords']);
             }
 
-            // If a new file is uploaded, process it
+            // Check if the book has an uploaded file (PDF)
             if ($request->hasFile('file')) {
-                $file = $request->file('file');
-                $sizeInMB = $file->getSize() / (1024 * 1024); // Convert file size to MB
-                $validatedData['size'] = round($sizeInMB, 2);
+                $filePath = $request->file('file')->store('uploads/books');
+                $coverImagePath = $request->file('cover_image') ? $request->file('cover_image')->store('uploads/books/covers') : null;
+                $copyrightImagePath = $request->file('copyright_image')->store('uploads/books/copyrights');
 
-                // Parse the PDF to get the number of pages
-                $pdfParser = new Parser();
-                $pdf = $pdfParser->parseFile($file->getRealPath());
-                $numberOfPages = count($pdf->getPages());
-
-                // Update book with file details
-                $book->update([
-                    'number_pages' => $numberOfPages,
-                    'size' => $validatedData['size']
-                ]);
+                ProcessBookUpload::dispatch(
+                    $book,
+                    $filePath,
+                    $coverImagePath,
+                    $copyrightImagePath
+                );
             }
-
-            // Handle media uploads (cover, copyright image, etc.)
-            $this->handleMediaUploads($request, $book);
 
             // Clear the cache for the book
             $this->clearCache($book);
