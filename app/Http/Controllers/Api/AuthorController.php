@@ -390,15 +390,28 @@ class AuthorController extends Controller
 
             // Add average rating to each book
             $booksWithRatings = $books->map(function ($book) {
-                // Calculate average rating
-                $averageRating = $book->comments()->avg('rating');
-                $formattedRating = $averageRating ? number_format($averageRating, 1) : null;
-
-                // Add average rating to the book object
-                $book->average_rating = $formattedRating;
-                $book->cover_image = $book->getFirstMediaUrl('cover_image');
-
-                return $book;
+                return [
+                    'id' => $book->id,
+                    'title' => $book->title,
+                    'description' => $book->description,
+                    'published_at' => $book->published_at,
+                    'number_pages' => $book->number_pages,
+                    'size' => $book->size,
+                    'views_count' => $book->views_count,
+                    'downloads_count' => $book->downloads_count,
+                    'edition_number' => $book->edition_number,
+                    'lang' => $book->lang,
+                    'publisher_name' => $book->publisher_name,
+                    'status' => $book->status,
+                    'category_id' => $book->category_id,
+                    'user_id' => $book->user_id,
+                    'author_id' => $book->author_id,
+                    'book_series_id' => $book->book_series_id,
+                    'created_at' => $book->created_at,
+                    'updated_at' => $book->updated_at,
+                    'average_rating' => $book->comments()->avg('rating') ? number_format($book->comments()->avg('rating'), 1) : null,
+                    'cover_image' => $book->getFirstMediaUrl('cover_image') ?: null,
+                ];
             });
 
             return response()->json($booksWithRatings, Response::HTTP_OK);
