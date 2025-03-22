@@ -15,20 +15,6 @@ use Exception;
 
 class CategoryController extends Controller
 {
-    protected $environment;
-
-    /*
-    |------------------------------------------------------
-    | Constructor to handle authorization based on environment
-    |------------------------------------------------------
-    */
-    public function __construct()
-    {
-        $this->environment = env('DEV_ENVIRONMENT', false); // Determine if it's a development environment
-        if ($this->environment) {
-            Auth::loginUsingId(1); // Auto-login for development purposes
-        }
-    }
 
     /*
     |---------------------------------------
@@ -92,10 +78,8 @@ class CategoryController extends Controller
     public function store(Request $request)
     {
         try {
-            // Authorization check for non-development environment
-            if (!$this->environment) {
-                $this->authorize('create', Category::class); // Ensure user has permission to create a category
-            }
+            // Authorization check
+            $this->authorize('create', Category::class);
 
             // Validate the request data
             $validated = $request->validate([
@@ -125,10 +109,8 @@ class CategoryController extends Controller
             // Find the category by ID, or throw an exception if not found
             $category = Category::findOrFail($id);
 
-            // Authorization check for non-development environment
-            if (!$this->environment) {
-                $this->authorize('update', $category); // Ensure user has permission to update the category
-            }
+            // Authorization check
+            $this->authorize('update', $category);
 
             // Validate the request data
             $validated = $request->validate([
@@ -159,10 +141,8 @@ class CategoryController extends Controller
             // Find the category by ID, or throw an exception if not found
             $category = Category::findOrFail($id);
 
-            // Authorization check for non-development environment
-            if (!$this->environment) {
-                $this->authorize('delete', $category); // Ensure user has permission to delete the category
-            }
+            // Authorization check
+            $this->authorize('delete', $category);
 
             // Delete the category from the database
             $category->delete();
@@ -226,9 +206,7 @@ class CategoryController extends Controller
     {
         try {
             // Check if environment is not development, then authorize the user.
-            if (!$this->environment) {
-                $this->authorize('create', CategoryGroup::class);
-            }
+            $this->authorize('create', CategoryGroup::class);
 
             // Validate the incoming request data.
             $validated = $request->validate([
@@ -258,9 +236,7 @@ class CategoryController extends Controller
             $categoryGroup = CategoryGroup::findOrFail($id);
 
             // Check if environment is not development, then authorize the user.
-            if (!$this->environment) {
-                $this->authorize('update', $categoryGroup);
-            }
+            $this->authorize( 'update', CategoryGroup::class);
 
             // Validate the incoming request data.
             $validated = $request->validate([
@@ -290,9 +266,7 @@ class CategoryController extends Controller
             $categoryGroup = CategoryGroup::findOrFail($id);
 
             // Check if environment is not development, then authorize the user.
-            if (!$this->environment) {
-                $this->authorize('delete', $categoryGroup);
-            }
+            $this->authorize('delete', CategoryGroup::class);
 
             // Delete the category group.
             $categoryGroup->delete();

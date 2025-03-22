@@ -46,7 +46,7 @@ class BookPolicy
     {
         // User must :
         // - Own the book, or
-        // - Have a higher role (e.g., not a regular user).
+        // - Have a higher role (not a regular user).
         return $user->id === $book->user_id || $user->roles()->where('name', '!=', 'user')->exists();
     }
 
