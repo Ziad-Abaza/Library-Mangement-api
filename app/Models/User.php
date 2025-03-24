@@ -73,6 +73,15 @@ class User extends Authenticatable implements HasMedia
         return $this->roles()->with('permissions')->get()->pluck('permissions')->flatten()->contains('name', $permissionName);
     }
 
+    public function getAllPermissions()
+    {
+        return $this->roles()->with('permissions')->get()
+            ->pluck('permissions')
+            ->flatten()
+            ->unique('id');
+    }
+
+
     public function hasRole($roleName)
     {
         return $this->roles()->where('name', $roleName)->exists();

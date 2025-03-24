@@ -40,6 +40,7 @@ Route::middleware('auth:sanctum')->group(function () {
                 'created_at' => $user->created_at,
                 'is_active' => $user->is_active,
                 'role' => $user->roles->select('id', 'name', 'role_level')->first(),
+                'permissions' => $user->getAllPermissions()->pluck('name'),
             ],
         ]);
     });

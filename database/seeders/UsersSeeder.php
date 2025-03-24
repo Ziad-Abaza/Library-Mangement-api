@@ -19,14 +19,14 @@ class UsersSeeder extends Seeder
             'token_expiration' => now()->addDays(7),
         ]);
 
-        // User::create([
-        //     'name' => 'Jane Smith',
-        //     'email' => 'jane@example.com',
-        //     'password' => bcrypt('password123'),
-        //     'is_active' => true,
-        //     'token' => Str::random(60),
-        //     'token_expiration' => now()->addDays(7),
-        // ]);
+        User::create([
+            'name' => 'Jane Smith',
+            'email' => 'jane@example.com',
+            'password' => bcrypt('password123'),
+            'is_active' => true,
+            'token' => Str::random(60),
+            'token_expiration' => now()->addDays(7),
+        ]);
 
         // User::create([
         //     'name' => 'Michael Johnson',
