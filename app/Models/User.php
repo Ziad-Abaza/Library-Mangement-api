@@ -112,6 +112,13 @@ class User extends Authenticatable implements HasMedia
         return $this->notifications()->whereNull('read_at');
     }
 
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('images')
+            ->singleFile(); 
+    }
+
+
     /**
      * The attributes that should be hidden for serialization.
      *

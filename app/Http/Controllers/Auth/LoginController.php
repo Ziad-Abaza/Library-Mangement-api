@@ -45,7 +45,7 @@ class LoginController extends Controller
 
         // Create new API token
         $token = $user->createToken('auth_token')->plainTextToken;
-        $profileImage = $user->getFirstMediaUrl('profile_images');
+        $profileImage = $user->getFirstMediaUrl('images');
 
         // Return response
         return response()->json([
