@@ -41,6 +41,7 @@ Route::middleware('auth:sanctum')->group(function () {
                 'is_active' => $user->is_active,
                 'role' => $user->roles->select('id', 'name', 'role_level')->first(),
                 'permissions' => $user->getAllPermissions()->pluck('name'),
+                'profile_image' => $user->getFirstMediaUrl('images'),
             ],
         ]);
     });
