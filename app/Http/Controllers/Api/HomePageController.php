@@ -29,7 +29,8 @@ class HomePageController extends Controller
 
                 if ($book->author) {
                     $book->author->author_image = $book->author->getFirstMediaUrl('authors');
-                }
+                unset($author->media);
+            }
 
                 return $book;
             });
@@ -45,7 +46,8 @@ class HomePageController extends Controller
 
                 if ($book->author) {
                     $book->author->author_image = $book->author->getFirstMediaUrl('authors');
-                }
+                unset($author->media);
+            }
 
                 return $book;
             });
@@ -64,14 +66,15 @@ class HomePageController extends Controller
 
                 if ($book->author) {
                     $book->author->author_image = $book->author->getFirstMediaUrl('authors');
-                }
+                unset($author->media);
+            }
 
                 return $book;
             });
 
         // Fetch a list of authors with their image URL
         $authors = Author::take(5)->get()->map(function ($author) {
-            $author->author_image = $author->getFirstMediaUrl('authors'); // Add author image URL
+            $author->author_image = $author->getFirstMediaUrl('author'); // Add author image URL
             return $author;
         });
 
