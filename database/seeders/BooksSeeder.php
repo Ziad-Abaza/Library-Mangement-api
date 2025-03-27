@@ -325,8 +325,10 @@ class BooksSeeder extends Seeder
             ]);
 
             $imagePath = storage_path("app/public/assets/images/books/" . $bookData['image']);
-            // $filePath = storage_path("app/public/assets/book_test_file.pdf");
-            // $book->addMedia($filePath)->toMediaCollection('file');
+            $filePath = storage_path("app/public/assets/book_test_file.pdf");
+            if (file_exists($filePath)) {
+                $book->addMedia($filePath)->toMediaCollection('file');
+            }
             if (file_exists($imagePath)) {
                 $book->addMedia($imagePath)->toMediaCollection('cover_image');
             }
