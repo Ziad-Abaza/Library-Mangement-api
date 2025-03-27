@@ -75,9 +75,10 @@ class HomePageController extends Controller
         // Fetch a list of authors with their image URL
         $authors = Author::take(5)->get()->map(function ($author) {
             $author->author_image = $author->getFirstMediaUrl('authors'); // Add author image URL
-            unset($author->media); // Remove the 'media' field from author
+            unset($author->media); // Remove the 'media' field if needed
             return $author;
         });
+
 
         // Search for books based on user input and paginate the results
         $searchBooks = Book::with(['category', 'author'])
