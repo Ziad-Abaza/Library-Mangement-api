@@ -26,6 +26,11 @@ class HomePageController extends Controller
             ->get()
             ->map(function ($book) {
                 $book->cover_image_url = $book->getFirstMediaUrl('cover_image');
+
+                if ($book->author) {
+                    $book->author->author_image_url = $book->author->getFirstMediaUrl('authors');
+                }
+
                 return $book;
             });
 
@@ -36,8 +41,12 @@ class HomePageController extends Controller
             ->take(6)
             ->get()
             ->map(function ($book) {
-                // Add cover image URL to each book
                 $book->cover_image_url = $book->getFirstMediaUrl('cover_image');
+
+                if ($book->author) {
+                    $book->author->author_image_url = $book->author->getFirstMediaUrl('authors');
+                }
+
                 return $book;
             });
 
@@ -52,12 +61,17 @@ class HomePageController extends Controller
             ->get()
             ->map(function ($book) {
                 $book->cover_image_url = $book->getFirstMediaUrl('cover_image');
+
+                if ($book->author) {
+                    $book->author->author_image_url = $book->author->getFirstMediaUrl('authors');
+                }
+
                 return $book;
             });
 
         // Fetch a list of authors with their image URL
         $authors = Author::take(5)->get()->map(function ($author) {
-            $author->author_image_url = $author->getFirstMediaUrl('author'); // Add author image URL
+            $author->author_image_url = $author->getFirstMediaUrl('authors'); // Add author image URL
             return $author;
         });
 
