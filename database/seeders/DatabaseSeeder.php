@@ -21,9 +21,9 @@ class DatabaseSeeder extends Seeder
             CategorySeeder::class,
 
             // CategorySeeder::class,
-            // AuthorSeeder::class,
+            AuthorSeeder::class,
             // BookSeriesSeeder::class,
-            // BooksSeeder::class,
+            BooksSeeder::class,
             // CommentsSeeder::class,
             // KeywordsSeeder::class,
             // NotificationSeeder::class,

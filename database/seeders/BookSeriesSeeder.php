@@ -1,40 +1,42 @@
 <?php
 
-namespace Database\Seeders;
-
-use App\Models\BookSeries;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
+use App\Models\BookSeries;
 
 class BookSeriesSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
-    public function run(): void
+    public function run()
     {
-        BookSeries::create([
-            'title' => 'Classic Literature',
-            'description' => 'A collection of timeless classic books.',
-            'user_id' => 3, 
-        ]);
+        $bookSeries = [
+            [
+                'title' => 'سلسلة كتب الفقه المبسط',
+                'description' => 'مجموعة من الكتب التي تشرح الفقه الإسلامي بأسلوب سهل وميسر للمبتدئين والمتخصصين.',
+                'user_id' => 1,
+            ],
+            [
+                'title' => 'سلسلة روايات الخيال العلمي',
+                'description' => 'مجموعة قصصية تستعرض تصورات علمية مستقبلية وابتكارات تقنية مذهلة.',
+                'user_id' => 1,
+            ],
+            [
+                'title' => 'سلسلة كتب التنمية البشرية',
+                'description' => 'مجموعة كتب تهدف إلى تطوير الذات وتحفيز الفرد على النجاح في الحياة الشخصية والمهنية.',
+                'user_id' => 1,
+            ],
+            [
+                'title' => 'سلسلة الأدب العربي الكلاسيكي',
+                'description' => 'مجموعة تحتوي على أشهر الروايات والدواوين الشعرية التي أثرت في تاريخ الأدب العربي.',
+                'user_id' => 1,
+            ],
+            [
+                'title' => 'سلسلة كتب تاريخ العلوم',
+                'description' => 'كتب تروي تطور العلوم المختلفة عبر العصور وتأثيرها على البشرية.',
+                'user_id' => 1,
+            ],
+        ];
 
-        BookSeries::create([
-            'title' => 'Science Fiction Series',
-            'description' => 'Explore the world of futuristic science fiction.',
-            'user_id' => 3,
-        ]);
-
-        BookSeries::create([
-            'title' => 'Mystery Thrillers',
-            'description' => 'A thrilling collection of mystery and suspense novels.',
-            'user_id' => 3,
-        ]);
-
-        BookSeries::create([
-            'title' => 'Historical Fiction',
-            'description' => 'Books that take you back in time to historical eras.',
-            'user_id' => 3,
-        ]);
+        foreach ($bookSeries as $series) {
+            BookSeries::create($series);
+        }
     }
 }
