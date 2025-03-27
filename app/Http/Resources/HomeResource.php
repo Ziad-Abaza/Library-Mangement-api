@@ -7,6 +7,11 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class HomeResource extends JsonResource
 {
+    /**
+     * Transform the resource into an array.
+     *
+     * @return array<string, mixed>
+     */
     public function toArray(Request $request): array
     {
         return [
@@ -19,7 +24,7 @@ class HomeResource extends JsonResource
                     'published_at' => $book->published_at,
                     'author' => $book->author,
                     'category' => $book->category,
-                    'average_rating' => number_format($book->average_rating, 1),
+                    'average_rating' => $book->comments_avg_rating ? number_format($book->comments_avg_rating, 1) : null, // استخدم القيمة المحسوبة
                 ];
             }),
             'popularBooks' => $this->resource['popularBooks']->map(function ($book) {
@@ -31,7 +36,7 @@ class HomeResource extends JsonResource
                     'views_count' => $book->views_count,
                     'author' => $book->author,
                     'category' => $book->category,
-                    'average_rating' => number_format($book->average_rating, 1), 
+                    'average_rating' => $book->comments_avg_rating ? number_format($book->comments_avg_rating, 1) : null, // استخدم القيمة المحسوبة
                 ];
             }),
             'topRatedBooks' => $this->resource['topRatedBooks']->map(function ($book) {
@@ -40,7 +45,7 @@ class HomeResource extends JsonResource
                     'title' => $book->title,
                     'description' => $book->description,
                     'cover_image' => $book->cover_image_url,
-                    'average_rating' => number_format($book->average_rating, 1), 
+                    'average_rating' => $book->comments_avg_rating ? number_format($book->comments_avg_rating, 1) : null, // استخدم القيمة المحسوبة
                     'author' => $book->author,
                     'category' => $book->category,
                 ];
