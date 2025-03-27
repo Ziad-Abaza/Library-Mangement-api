@@ -74,7 +74,7 @@ class HomePageController extends Controller
 
         // Fetch a list of authors with their image URL
         $authors = Author::take(5)->get()->map(function ($author) {
-            $author->author_image = $author->getFirstMediaUrl('authors'); // Add author image URL
+            $author->profile_image = $author->getFirstMediaUrl('authors'); // Add author image URL
             unset($author->media); // Remove the 'media' field if needed
             return $author;
         });
