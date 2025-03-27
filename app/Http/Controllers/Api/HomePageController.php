@@ -28,8 +28,8 @@ class HomePageController extends Controller
                 $book->cover_image_url = $book->getFirstMediaUrl('cover_image');
 
                 if ($book->author) {
-                    // Remove the media data (no need to include media details like ID, name, etc.)
                     $book->author->author_image = $book->author->getFirstMediaUrl('authors');
+                    unset($book->author->media); // Remove the 'media' field from author
                 }
 
                 return $book;
@@ -46,6 +46,7 @@ class HomePageController extends Controller
 
                 if ($book->author) {
                     $book->author->author_image = $book->author->getFirstMediaUrl('authors');
+                    unset($book->author->media); // Remove the 'media' field from author
                 }
 
                 return $book;
@@ -65,6 +66,7 @@ class HomePageController extends Controller
 
                 if ($book->author) {
                     $book->author->author_image = $book->author->getFirstMediaUrl('authors');
+                    unset($book->author->media); // Remove the 'media' field from author
                 }
 
                 return $book;
@@ -73,6 +75,7 @@ class HomePageController extends Controller
         // Fetch a list of authors with their image URL
         $authors = Author::take(5)->get()->map(function ($author) {
             $author->author_image = $author->getFirstMediaUrl('authors'); // Add author image URL
+            unset($author->media); // Remove the 'media' field from author
             return $author;
         });
 
