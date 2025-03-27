@@ -62,7 +62,7 @@ class BooksSeeder extends Seeder
                 'user_id' => $seriesData['user_id'],
             ]);
 
-            $imagePath = asset("assets/images/BookSeries/" . $seriesData['image']);
+            $imagePath = public_path("assets/images/BookSeries/" . $seriesData['image']);
             if (file_exists($imagePath)) {
                 $bookSeries->addMedia($imagePath)->toMediaCollection('book_series');
             }
@@ -324,8 +324,8 @@ class BooksSeeder extends Seeder
                 'book_series_id' => $bookData['book_series_id'],
             ]);
 
-            $imagePath = asset("assets/images/books/" . $bookData['image']);
-            $filePath = asset("assets/book_test_file.pdf");
+            $imagePath = public_path("assets/images/books/" . $bookData['image']);
+            $filePath = public_path("assets/book-test-file.pdf");
             if (file_exists($filePath)) {
                 $book->addMedia($filePath)->toMediaCollection('file');
             }
