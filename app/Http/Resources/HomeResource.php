@@ -16,6 +16,9 @@ class HomeResource extends JsonResource
     {
         return [
             'latestBooks' => $this->resource['latestBooks']->map(function ($book) {
+                $averageRating = $book->comments()->avg('rating');
+                $formattedRating = $averageRating ? number_format($averageRating, 1) : null;
+
                 return [
                     'id' => $book->id,
                     'title' => $book->title,
@@ -24,10 +27,13 @@ class HomeResource extends JsonResource
                     'published_at' => $book->published_at,
                     'author' => $book->author,
                     'category' => $book->category,
-                    'average_rating' => $book->comments_avg_rating ? number_format($book->comments_avg_rating, 1) : null, // استخدم القيمة المحسوبة
+                    'average_rating' => $formattedRating,
                 ];
             }),
             'popularBooks' => $this->resource['popularBooks']->map(function ($book) {
+                $averageRating = $book->comments()->avg('rating');
+                $formattedRating = $averageRating ? number_format($averageRating, 1) : null;
+
                 return [
                     'id' => $book->id,
                     'title' => $book->title,
@@ -36,16 +42,19 @@ class HomeResource extends JsonResource
                     'views_count' => $book->views_count,
                     'author' => $book->author,
                     'category' => $book->category,
-                    'average_rating' => $book->comments_avg_rating ? number_format($book->comments_avg_rating, 1) : null, // استخدم القيمة المحسوبة
+                    'average_rating' => $formattedRating,
                 ];
             }),
             'topRatedBooks' => $this->resource['topRatedBooks']->map(function ($book) {
+                $averageRating = $book->comments()->avg('rating');
+                $formattedRating = $averageRating ? number_format($averageRating, 1) : null;
+
                 return [
                     'id' => $book->id,
                     'title' => $book->title,
                     'description' => $book->description,
                     'cover_image' => $book->cover_image_url,
-                    'average_rating' => $book->comments_avg_rating ? number_format($book->comments_avg_rating, 1) : null, // استخدم القيمة المحسوبة
+                    'average_rating' => $formattedRating,
                     'author' => $book->author,
                     'category' => $book->category,
                 ];

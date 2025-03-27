@@ -55,8 +55,10 @@ class HomePageController extends Controller
         // Fetch the top-rated books based on average comment rating
         $topRatedBooks = Book::with(['category', 'author'])
             ->where('status', 'approved')
-            ->withAvg('comments', 'rating') 
-            ->orderByDesc('comments_avg_rating')
+            ->withCount(['comments as average_rating' => function ($query) {
+                $query->select(DB::raw('coalesce(avg(rating), 0)'));
+            }])
+            ->orderByDesc('average_rating')
             ->take(6)
             ->get()
             ->map(function ($book) {
@@ -69,7 +71,6 @@ class HomePageController extends Controller
 
                 return $book;
             });
-
 
         // Fetch a list of authors with their image URL
         $authors = Author::take(5)->get()->map(function ($author) {
