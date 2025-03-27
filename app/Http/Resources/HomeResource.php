@@ -7,18 +7,10 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class HomeResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @return array<string, mixed>
-     */
     public function toArray(Request $request): array
     {
         return [
             'latestBooks' => $this->resource['latestBooks']->map(function ($book) {
-                $averageRating = $book->comments()->avg('rating');
-                $formattedRating = $averageRating ? number_format($averageRating, 1) : null;
-
                 return [
                     'id' => $book->id,
                     'title' => $book->title,
@@ -27,13 +19,10 @@ class HomeResource extends JsonResource
                     'published_at' => $book->published_at,
                     'author' => $book->author,
                     'category' => $book->category,
-                    'average_rating' => $formattedRating,
+                    'average_rating' => number_format($book->average_rating, 1),
                 ];
             }),
             'popularBooks' => $this->resource['popularBooks']->map(function ($book) {
-                $averageRating = $book->comments()->avg('rating');
-                $formattedRating = $averageRating ? number_format($averageRating, 1) : null;
-
                 return [
                     'id' => $book->id,
                     'title' => $book->title,
@@ -42,19 +31,16 @@ class HomeResource extends JsonResource
                     'views_count' => $book->views_count,
                     'author' => $book->author,
                     'category' => $book->category,
-                    'average_rating' => $formattedRating,
+                    'average_rating' => number_format($book->average_rating, 1), 
                 ];
             }),
             'topRatedBooks' => $this->resource['topRatedBooks']->map(function ($book) {
-                $averageRating = $book->comments()->avg('rating');
-                $formattedRating = $averageRating ? number_format($averageRating, 1) : null;
-
                 return [
                     'id' => $book->id,
                     'title' => $book->title,
                     'description' => $book->description,
                     'cover_image' => $book->cover_image_url,
-                    'average_rating' => $formattedRating,
+                    'average_rating' => number_format($book->average_rating, 1), 
                     'author' => $book->author,
                     'category' => $book->category,
                 ];
