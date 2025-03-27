@@ -62,7 +62,7 @@ class BooksSeeder extends Seeder
                 'user_id' => $seriesData['user_id'],
             ]);
 
-            $imagePath = public_path("assets/images/BookSeries/" . $seriesData['image']);
+            $imagePath = storage_path("app/public/assets/images/BookSeries/" . $seriesData['image']);
             if (file_exists($imagePath)) {
                 $bookSeries->addMedia($imagePath)->toMediaCollection('book_series');
             }
@@ -299,7 +299,7 @@ class BooksSeeder extends Seeder
                 'status' => 'approved',
                 'category_id' => 2,
                 'user_id' => 1,
-                'author_id' => 12,
+                'author_id' => 4,
                 'book_series_id' => 4,
                 'image' => 'astronomy_and_universe.jpeg',
             ],
@@ -324,9 +324,9 @@ class BooksSeeder extends Seeder
                 'book_series_id' => $bookData['book_series_id'],
             ]);
 
-            $imagePath = public_path("assets/images/books/" . $bookData['image']);
-            $filePath = public_path("assets/book_test_file.pdf");
-            $book->addMedia($filePath)->toMediaCollection('file');
+            $imagePath = storage_path("app/public/assets/images/books/" . $bookData['image']);
+            // $filePath = storage_path("app/public/assets/book_test_file.pdf");
+            // $book->addMedia($filePath)->toMediaCollection('file');
             if (file_exists($imagePath)) {
                 $book->addMedia($imagePath)->toMediaCollection('cover_image');
             }
