@@ -66,18 +66,23 @@ class Book extends Model implements HasMedia
         return $this->belongsTo(Author::class);
     }
 
+    public function averageRating()
+    {
+        return $this->comments()->where('status', 1)->avg('rating') ?? 0;
+    }
+
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('cover_image')
             ->useDisk('public')
-            ->singleFile(); 
-            
+            ->singleFile();
+
         $this->addMediaCollection('file')
             ->useDisk('public')
-            ->singleFile(); 
+            ->singleFile();
 
             $this->addMediaCollection('copyright_image')
             ->useDisk('public')
-            ->singleFile(); 
+            ->singleFile();
     }
 }
